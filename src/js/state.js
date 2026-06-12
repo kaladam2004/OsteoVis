@@ -9,5 +9,7 @@ export const state = {
   currentFilter: 'all',
   boneMeshes: {},
   boneBasePositions: {},
+  boneBaseScales: {},
+  boneBaseQuaternions: {},
   labels: {}
 };

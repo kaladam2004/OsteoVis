@@ -116,8 +116,8 @@ function showFallbackUI() {
     <div style="background:rgba(20,20,25,0.95); padding:40px; border-radius:12px; border:1px solid var(--accent); text-align:center; max-width:500px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
       <h2 style="color:var(--accent); margin-bottom:15px; font-size:24px;">Model Not Found</h2>
       <p style="color:var(--text); line-height:1.6; margin-bottom:20px; font-size:16px;">
-        Realistic skeleton model not found.<br><br>
-        Please place your medically accurate <strong>human-skeleton.glb</strong> file in the <code style="color:var(--accent2)">public/models/</code> directory.
+        Separated skeleton model not found.<br><br>
+        Please place your separated <strong>human-skeleton-separated-final.glb</strong> file in the <code style="color:var(--accent2)">public/models/</code> directory.
       </p>
       <div style="font-size:50px;">💀</div>
     </div>
@@ -128,58 +128,61 @@ function showFallbackUI() {
 export function loadSkeletonModel() {
   return new Promise((resolve, reject) => {
     const loader = new GLTFLoader();
-    loader.load('/models/human-skeleton.glb', (gltf) => {
+    loader.load('/models/human-skeleton-separated-final.glb', (gltf) => {
        const model = gltf.scene;
        const meshes = [];
        
-       // Collect all meshes
        model.traverse((child) => {
-         if (child.isMesh) {
+         if (child.isMesh && child.visible) {
             meshes.push(child);
          }
        });
        
-       // Flatten hierarchy to scene and apply mapping
+       const modelGroup = new THREE.Group();
+       scene.add(modelGroup);
+
        meshes.forEach((child) => {
-          scene.attach(child);
+          modelGroup.add(child);
           child.material = boneMat.clone();
           child.castShadow = true;
           child.receiveShadow = true;
           
           const mappedId = mapBoneName(child.name);
-          if (mappedId) {
-             child.userData.boneId = mappedId;
-             state.boneMeshes[mappedId] = child;
-             state.boneBasePositions[mappedId] = child.position.clone();
-             createLabel(mappedId, child);
-          } else {
-             // Fallback for unmapped parts (give them a generic ID)
-             const genId = 'unmapped_' + child.uuid;
-             child.userData.boneId = genId;
-             state.boneMeshes[genId] = child;
-             state.boneBasePositions[genId] = child.position.clone();
-          }
+          const finalId = mappedId ? mappedId : ('unmapped_' + child.uuid);
+          
+          child.userData.boneId = finalId;
+          state.boneMeshes[finalId] = child;
+          state.boneBasePositions[finalId] = child.position.clone();
+          state.boneBaseScales[finalId] = child.scale.clone();
+          state.boneBaseQuaternions[finalId] = child.quaternion.clone();
+          
+          if(mappedId) createLabel(mappedId, child);
        });
        
-       // Optional: Scale/Position adjustment if needed based on model size
-       // We can compute bounding box to normalize size to height ~ 1.8
-       const box = new THREE.Box3().setFromObject(scene);
+       // Center and Scale
+       const box = new THREE.Box3().setFromObject(modelGroup);
        const size = box.getSize(new THREE.Vector3());
        if(size.y > 0) {
           const scale = 1.8 / size.y;
-          meshes.forEach(c => {
-             c.position.multiplyScalar(scale);
-             c.scale.multiplyScalar(scale);
-             state.boneBasePositions[c.userData.boneId].copy(c.position);
-          });
+          modelGroup.scale.setScalar(scale);
+          modelGroup.updateMatrixWorld(true);
        }
-       // Also adjust Y offset to stand on ground
-       const newBox = new THREE.Box3();
-       meshes.forEach(c => newBox.expandByObject(c));
-       const offset = -newBox.min.y - 0.9; // Center vertically
+       
+       const newBox = new THREE.Box3().setFromObject(modelGroup);
+       const offset = -newBox.min.y - 0.9;
+       modelGroup.position.y += offset;
+       modelGroup.updateMatrixWorld(true);
+       
+       // Re-read world positions into base positions
        meshes.forEach(c => {
-          c.position.y += offset;
+          const worldPos = new THREE.Vector3();
+          c.getWorldPosition(worldPos);
+          // Wait, for zoom-forward we use parent.worldToLocal, so we should keep the LOCAL transform!
+          // Actually, our zoom-forward uses `targetLocal = mesh.parent.worldToLocal(targetWorld)`.
+          // We MUST store local transforms to restore them on Reset.
           state.boneBasePositions[c.userData.boneId].copy(c.position);
+          state.boneBaseQuaternions[c.userData.boneId].copy(c.quaternion);
+          state.boneBaseScales[c.userData.boneId].copy(c.scale);
        });
        
        const loading = document.getElementById('loading');
