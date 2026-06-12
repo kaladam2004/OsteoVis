@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>OsteoVis — Premium 3D Human Skeleton Atlas</title>
+
+</head>
+<body>
+
+<div id="loading">
+  <div class="loading-logo">🦴 OsteoVis</div>
+  <div style="font-size:15px;color:var(--text2)">Loading High-Resolution Medical Atlas…</div>
+  <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
+</div>
+
+<div id="header">
+  <button class="mobile-toggle" onclick="toggleSidebar('left')">☰</button>
+  <div class="logo"><span class="logo-icon">🦴</span><span>OsteoVis</span></div>
+  <div class="header-center">
+    <button class="mode-btn active" id="btn-mode-normal" onclick="setMode('normal')">Explore</button>
+    <button class="mode-btn" id="btn-mode-explode" onclick="setMode('explode')">Explode</button>
+    <button class="mode-btn" id="btn-mode-learn" onclick="setMode('learn')">Systems</button>
+    <button class="mode-btn" id="btn-mode-quiz" onclick="setMode('quiz')">Quiz</button>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" title="Toggle Labels" onclick="toggleLabels()" id="btn-labels">🏷️</button>
+    <button class="icon-btn" title="Auto-Rotate" onclick="toggleRotate()" id="btn-rotate">↻</button>
+    <button class="icon-btn" title="Screenshot" onclick="takeScreenshot()">📷</button>
+    <button class="mobile-toggle" onclick="toggleSidebar('right')" style="font-size:20px">ℹ️</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="overlay" onclick="closeAllSidebars()"></div>
+
+  <div id="sidebar-left">
+    <div class="panel-header" style="display:none" id="mobile-header-left">
+      Navigation <button class="close-panel-btn" onclick="toggleSidebar('left')">✕</button>
+    </div>
+    <div id="search-wrap">
+      <div class="search-wrap-inner">
+        <span class="search-icon">🔍</span>
+        <input id="search-input" type="text" placeholder="Search anatomy database…" oninput="doSearch(this.value)">
+        <div id="search-results"></div>
+      </div>
+    </div>
+    <div class="section-tabs" id="section-tabs">
+      <button class="section-tab active" data-cat="all" onclick="filterCategory('all',this)">All</button>
+      <button class="section-tab" data-cat="skull" onclick="filterCategory('skull',this)">Skull</button>
+      <button class="section-tab" data-cat="vertebral" onclick="filterCategory('vertebral',this)">Spine</button>
+      <button class="section-tab" data-cat="thorax" onclick="filterCategory('thorax',this)">Thorax</button>
+      <button class="section-tab" data-cat="upper" onclick="filterCategory('upper',this)">Upper Limb</button>
+      <button class="section-tab" data-cat="pelvis" onclick="filterCategory('pelvis',this)">Pelvis</button>
+      <button class="section-tab" data-cat="lower" onclick="filterCategory('lower',this)">Lower Limb</button>
+    </div>
+    <div id="bone-list"></div>
+    <div id="stats-bar">
+      <div class="stat-chip"><div class="stat-num" id="total-bones">206</div><div class="stat-label">Bones</div></div>
+      <div class="stat-chip"><div class="stat-num" id="visible-count">206</div><div class="stat-label">Visible</div></div>
+    </div>
+  </div>
+
+  <div id="canvas-wrap">
+    <canvas id="three-canvas"></canvas>
+    <div id="tooltip">
+      <div id="tooltip-name"></div>
+      <div id="tooltip-latin"></div>
+      <span id="tooltip-cat"></span>
+      <div id="tooltip-desc"></div>
+    </div>
+    <div id="view-controls">
+      <button class="view-btn" onclick="setCameraView('front')">Front</button>
+      <button class="view-btn" onclick="setCameraView('back')">Back</button>
+      <button class="view-btn" onclick="setCameraView('left')">Side</button>
+      <button class="view-btn" onclick="setCameraView('top')">Top</button>
+      <button class="view-btn" onclick="resetCamera()" style="background:var(--accent);color:#fff;border-color:var(--accent)">Reset</button>
+    </div>
+  </div>
+
+  <div id="panel-right">
+    <div class="panel-header">
+      Bone Details
+      <button class="close-panel-btn" onclick="toggleSidebar('right')">✕</button>
+    </div>
+    
+    <div id="bone-detail">
+      <div class="detail-placeholder">
+        <span class="icon">🔬</span>
+        Select any structure to view<br>anatomical details
+      </div>
+    </div>
+
+    <div id="quiz-panel">
+      <div class="quiz-score-wrap">
+        <div class="quiz-score-bar">
+          <div class="stat-chip"><div class="stat-num" id="quiz-score" style="color:var(--correct)">0</div><div class="stat-label">Score</div></div>
+          <div class="stat-chip"><div class="stat-num" id="quiz-total" style="color:var(--text2)">0</div><div class="stat-label">Total</div></div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="section-tab active" style="flex:1;text-align:center" onclick="setQuizLevel('beginner',this)">Beginner</button>
+          <button class="section-tab" style="flex:1;text-align:center" onclick="setQuizLevel('intermediate',this)">Med</button>
+          <button class="section-tab" style="flex:1;text-align:center" onclick="setQuizLevel('advanced',this)">Hard</button>
+        </div>
+      </div>
+      <div class="quiz-question" id="quiz-question">Identify the structure:<span>Loading...</span></div>
+      <div class="quiz-feedback" id="quiz-feedback"></div>
+      <button class="action-btn" onclick="nextQuizQuestion()">Skip Question ⏭</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>
