@@ -4,120 +4,274 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>OsteoVis — Premium 3D Human Skeleton Atlas</title>
-
 </head>
 <body>
 
-<div id="loading">
+<div id="loading" role="status" aria-live="polite">
   <div class="loading-logo">🦴 OsteoVis</div>
   <div style="font-size:15px;color:var(--text2)">Loading High-Resolution Medical Atlas…</div>
   <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
 </div>
 
-<div id="header">
-  <button class="mobile-toggle" onclick="toggleSidebar('left')">☰</button>
-  <div class="logo"><span class="logo-icon">🦴</span><span>OsteoVis</span></div>
-  <div class="header-center">
-    <button class="mode-btn active" id="btn-mode-normal" onclick="setMode('normal')">Explore</button>
-    <button class="mode-btn" id="btn-mode-explode" onclick="setMode('explode')">Explode</button>
-    <button class="mode-btn" id="btn-mode-learn" onclick="setMode('learn')">Systems</button>
-    <button class="mode-btn" id="btn-mode-quiz" onclick="setMode('quiz')">Quiz</button>
-  </div>
+<div id="header" role="banner">
+  <button class="mobile-toggle" onclick="toggleSidebar('left')" aria-label="Open bone navigation">☰</button>
+  <div class="logo" aria-label="OsteoVis"><span class="logo-icon">🦴</span><span>OsteoVis</span></div>
+  <nav class="header-center" aria-label="View modes">
+    <button class="mode-btn active" id="btn-mode-normal"  onclick="setMode('normal')"  aria-label="Explore mode"         aria-pressed="true">Explore</button>
+    <button class="mode-btn"        id="btn-mode-explode" onclick="setMode('explode')" aria-label="Explode anatomy view"  aria-pressed="false">Explode</button>
+    <button class="mode-btn"        id="btn-mode-learn"   onclick="setMode('learn')"   aria-label="Anatomy systems mode"  aria-pressed="false">Systems</button>
+    <button class="mode-btn"        id="btn-mode-quiz"    onclick="setMode('quiz')"    aria-label="Anatomy quiz mode"     aria-pressed="false">Quiz</button>
+  </nav>
   <div class="header-right">
-    <button class="icon-btn" title="Toggle Labels" onclick="toggleLabels()" id="btn-labels">🏷️</button>
-    <button class="icon-btn" title="Auto-Rotate" onclick="toggleRotate()" id="btn-rotate">↻</button>
-    <button class="icon-btn" title="Screenshot" onclick="takeScreenshot()">📷</button>
-    <button class="mobile-toggle" onclick="toggleSidebar('right')" style="font-size:20px">ℹ️</button>
+    <button class="icon-btn" id="btn-xray"         onclick="toggleXRay()"          title="X-Ray Mode"           aria-label="Toggle X-ray mode"          aria-pressed="false">☢</button>
+    <button class="icon-btn" id="btn-measure"      onclick="toggleMeasure()"       title="Measure Tool"         aria-label="Toggle measurement tool"    aria-pressed="false">📏</button>
+    <button class="icon-btn" id="btn-annotate"     onclick="toggleAnnotate()"      title="Annotate"             aria-label="Toggle annotation tool"     aria-pressed="false">📌</button>
+    <button class="icon-btn" id="btn-section"      onclick="toggleSection()"       title="Cross Section"        aria-label="Toggle cross section"       aria-pressed="false">✂</button>
+    <button class="icon-btn" id="btn-isolate"      onclick="toggleIsolation()"     title="Isolate Bone (I)"     aria-label="Toggle bone isolation"      aria-pressed="false">🔬</button>
+    <button class="icon-btn" id="btn-presentation" onclick="togglePresentation()"  title="Presentation Mode"    aria-label="Toggle presentation mode"   aria-pressed="false">🖥</button>
+    <button class="icon-btn" id="btn-labels"       onclick="toggleLabels()"        title="Toggle Labels"        aria-label="Toggle bone labels"         aria-pressed="false">🏷️</button>
+    <button class="icon-btn" id="btn-rotate"       onclick="toggleRotate()"        title="Auto-Rotate"          aria-label="Toggle auto-rotate"         aria-pressed="false">↻</button>
+    <div id="screenshot-wrap" style="position:relative">
+      <button class="icon-btn" id="btn-screenshot" onclick="toggleScreenshotMenu()" title="Screenshot" aria-label="Take screenshot">📷</button>
+      <div id="screenshot-menu" class="screenshot-dropdown">
+        <button onclick="takeScreenshot(false)">📸 Normal</button>
+        <button onclick="takeScreenshot(true)">🌙 Transparent BG</button>
+      </div>
+    </div>
+    <button class="mobile-toggle" onclick="toggleSidebar('right')" style="font-size:20px" aria-label="Open bone details">ℹ️</button>
   </div>
 </div>
 
-<div id="main">
-  <div id="overlay" onclick="closeAllSidebars()"></div>
+<div id="main" role="main">
+  <div id="overlay" onclick="closeAllSidebars()" aria-hidden="true"></div>
 
-  <div id="sidebar-left">
+  <!-- LEFT SIDEBAR -->
+  <div id="sidebar-left" role="navigation" aria-label="Bone navigation">
     <div class="panel-header" style="display:none" id="mobile-header-left">
-      Navigation <button class="close-panel-btn" onclick="toggleSidebar('left')">✕</button>
+      Navigation <button class="close-panel-btn" onclick="toggleSidebar('left')" aria-label="Close navigation">✕</button>
     </div>
     <div id="search-wrap">
       <div class="search-wrap-inner">
-        <span class="search-icon">🔍</span>
-        <input id="search-input" type="text" placeholder="Search anatomy database…" oninput="doSearch(this.value)">
-        <div id="search-results"></div>
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input id="search-input" type="text" placeholder="Search anatomy database…" oninput="doSearch(this.value)" aria-label="Search anatomy database" autocomplete="off">
+        <div id="search-results" role="listbox" aria-label="Search results"></div>
       </div>
     </div>
-    <div class="section-tabs" id="section-tabs">
-      <button class="section-tab active" data-cat="all" onclick="filterCategory('all',this)">All</button>
-      <button class="section-tab" data-cat="skull" onclick="filterCategory('skull',this)">Skull</button>
-      <button class="section-tab" data-cat="vertebral" onclick="filterCategory('vertebral',this)">Spine</button>
-      <button class="section-tab" data-cat="thorax" onclick="filterCategory('thorax',this)">Thorax</button>
-      <button class="section-tab" data-cat="upper" onclick="filterCategory('upper',this)">Upper Limb</button>
-      <button class="section-tab" data-cat="pelvis" onclick="filterCategory('pelvis',this)">Pelvis</button>
-      <button class="section-tab" data-cat="lower" onclick="filterCategory('lower',this)">Lower Limb</button>
+    <div class="section-tabs" id="section-tabs" role="tablist" aria-label="Bone categories">
+      <button class="section-tab active" data-cat="all"       onclick="filterCategory('all',this)"       role="tab" aria-selected="true">All</button>
+      <button class="section-tab"        data-cat="skull"     onclick="filterCategory('skull',this)"     role="tab" aria-selected="false">Skull</button>
+      <button class="section-tab"        data-cat="vertebral" onclick="filterCategory('vertebral',this)" role="tab" aria-selected="false">Spine</button>
+      <button class="section-tab"        data-cat="thorax"    onclick="filterCategory('thorax',this)"    role="tab" aria-selected="false">Thorax</button>
+      <button class="section-tab"        data-cat="upper"     onclick="filterCategory('upper',this)"     role="tab" aria-selected="false">Upper Limb</button>
+      <button class="section-tab"        data-cat="pelvis"    onclick="filterCategory('pelvis',this)"    role="tab" aria-selected="false">Pelvis</button>
+      <button class="section-tab"        data-cat="lower"     onclick="filterCategory('lower',this)"     role="tab" aria-selected="false">Lower Limb</button>
+      <button class="section-tab"        data-cat="hand"      onclick="filterCategory('hand',this)"      role="tab" aria-selected="false">Hand</button>
+      <button class="section-tab"        data-cat="foot"      onclick="filterCategory('foot',this)"      role="tab" aria-selected="false">Foot</button>
     </div>
-    <div id="bone-list"></div>
-    <div id="stats-bar">
+    <div id="bone-list" role="list" aria-label="Bone list"></div>
+    <div id="stats-bar" aria-live="polite">
       <div class="stat-chip"><div class="stat-num" id="total-bones">206</div><div class="stat-label">Bones</div></div>
       <div class="stat-chip"><div class="stat-num" id="visible-count">206</div><div class="stat-label">Visible</div></div>
     </div>
+    <!-- Statistics Dashboard -->
+    <div id="stats-dashboard" aria-label="Statistics">
+      <div class="sd-row"><span>In model</span><span id="sd-in-model">—</span></div>
+      <div class="sd-row"><span>Selected</span><span id="sd-selected">—</span></div>
+      <div class="sd-row"><span>Quiz acc.</span><span id="sd-quiz">—</span></div>
+      <div class="sd-row"><span>Annotations</span><span id="sd-annotations">0</span></div>
+    </div>
   </div>
 
-  <div id="canvas-wrap">
-    <canvas id="three-canvas"></canvas>
-    <div id="tooltip">
+  <!-- CANVAS -->
+  <div id="canvas-wrap" aria-label="3D anatomy viewer">
+    <canvas id="three-canvas" aria-label="Interactive 3D skeleton" tabindex="0"></canvas>
+
+    <!-- Layer system -->
+    <div id="layer-controls" role="group" aria-label="Anatomy layers">
+      <button class="layer-btn active" data-layer="skeleton"  onclick="setLayer('skeleton')"  aria-label="Skeleton layer"   aria-pressed="true">🦴 Skeleton</button>
+      <button class="layer-btn"        data-layer="muscles"   onclick="setLayer('muscles')"   aria-label="Muscles layer"    aria-pressed="false">💪 Muscles</button>
+      <button class="layer-btn"        data-layer="nerves"    onclick="setLayer('nerves')"    aria-label="Nerves layer"     aria-pressed="false">⚡ Nerves</button>
+      <button class="layer-btn"        data-layer="vessels"   onclick="setLayer('vessels')"   aria-label="Vessels layer"    aria-pressed="false">🩸 Vessels</button>
+      <button class="layer-btn"        data-layer="ligaments" onclick="setLayer('ligaments')" aria-label="Ligaments layer"  aria-pressed="false">🔗 Ligaments</button>
+    </div>
+
+    <!-- Cross-Section Panel -->
+    <div id="cross-section-panel" role="region" aria-label="Cross section controls" style="display:none">
+      <div class="cs-header">✂ Cross Section</div>
+      <div class="cs-row">
+        <label class="cs-label">
+          <input type="checkbox" id="clip-sagittal-active" onchange="toggleClipPlane('sagittal',this.checked)" aria-label="Sagittal plane">
+          Sagittal
+        </label>
+        <input type="range" class="cs-slider" id="clip-sagittal-slider"
+          min="0" max="100" value="100" disabled
+          oninput="updateClipValue('sagittal',this.value)" aria-label="Sagittal slice position">
+        <span id="clip-sagittal-pct" class="cs-pct">100%</span>
+      </div>
+      <div class="cs-row">
+        <label class="cs-label">
+          <input type="checkbox" id="clip-transverse-active" onchange="toggleClipPlane('transverse',this.checked)" aria-label="Transverse plane">
+          Transverse
+        </label>
+        <input type="range" class="cs-slider" id="clip-transverse-slider"
+          min="0" max="100" value="100" disabled
+          oninput="updateClipValue('transverse',this.value)" aria-label="Transverse slice position">
+        <span id="clip-transverse-pct" class="cs-pct">100%</span>
+      </div>
+      <div class="cs-row">
+        <label class="cs-label">
+          <input type="checkbox" id="clip-coronal-active" onchange="toggleClipPlane('coronal',this.checked)" aria-label="Coronal plane">
+          Coronal
+        </label>
+        <input type="range" class="cs-slider" id="clip-coronal-slider"
+          min="0" max="100" value="100" disabled
+          oninput="updateClipValue('coronal',this.value)" aria-label="Coronal slice position">
+        <span id="clip-coronal-pct" class="cs-pct">100%</span>
+      </div>
+      <button class="view-btn" onclick="resetSection()" style="margin-top:4px;width:100%;font-size:11px" aria-label="Reset all clipping planes">Reset All</button>
+    </div>
+
+    <!-- Layer placeholder notification -->
+    <div id="layer-placeholder" role="status" aria-live="polite" style="display:none">
+      <span aria-hidden="true">🔧</span>
+      <span><strong class="layer-ph-name">Layer</strong> model not added yet.</span>
+    </div>
+
+    <!-- Measure overlay -->
+    <div id="measure-overlay" role="region" aria-label="Measurement results" aria-live="polite" style="display:none">
+      <div id="meas-dist" class="meas-value"></div>
+      <div id="meas-angle" class="meas-value" style="display:none"></div>
+      <div id="meas-hint" class="meas-hint">Click a bone to place first point</div>
+      <button class="view-btn" onclick="clearMeasure()" style="font-size:11px;padding:5px 12px;margin-top:4px" aria-label="Clear measurement">Clear</button>
+    </div>
+
+    <!-- Systems panel (learn mode) -->
+    <div id="systems-panel" role="group" aria-label="Anatomy systems">
+      <button class="sys-btn active" data-system="axial"         onclick="applySystem('axial')">Axial</button>
+      <button class="sys-btn"        data-system="appendicular"  onclick="applySystem('appendicular')">Appendicular</button>
+      <button class="sys-btn"        data-system="skull"         onclick="applySystem('skull')">Skull</button>
+      <button class="sys-btn"        data-system="spine"         onclick="applySystem('spine')">Spine</button>
+      <button class="sys-btn"        data-system="thorax"        onclick="applySystem('thorax')">Thorax</button>
+      <button class="sys-btn"        data-system="upper"         onclick="applySystem('upper')">Upper Limb</button>
+      <button class="sys-btn"        data-system="lower"         onclick="applySystem('lower')">Lower Limb</button>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" role="tooltip" aria-live="polite">
       <div id="tooltip-name"></div>
       <div id="tooltip-latin"></div>
       <span id="tooltip-cat"></span>
       <div id="tooltip-desc"></div>
     </div>
-    <div id="view-controls">
-      <button class="view-btn" onclick="setCameraView('front')">Front</button>
-      <button class="view-btn" onclick="setCameraView('back')">Back</button>
-      <button class="view-btn" onclick="setCameraView('left')">Side</button>
-      <button class="view-btn" onclick="setCameraView('top')">Top</button>
-      <button class="view-btn" onclick="resetCamera()" style="background:var(--accent);color:#fff;border-color:var(--accent)">Reset</button>
+
+    <!-- Camera view controls (7 presets + reset) -->
+    <div id="view-controls" role="group" aria-label="Camera views">
+      <button class="view-btn" onclick="setCameraView('front')"     aria-label="Front view">Front</button>
+      <button class="view-btn" onclick="setCameraView('back')"      aria-label="Back view">Back</button>
+      <button class="view-btn" onclick="setCameraView('left')"      aria-label="Left view">Left</button>
+      <button class="view-btn" onclick="setCameraView('right')"     aria-label="Right view">Right</button>
+      <button class="view-btn" onclick="setCameraView('top')"       aria-label="Top view">Top</button>
+      <button class="view-btn" onclick="setCameraView('bottom')"    aria-label="Bottom view">Bottom</button>
+      <button class="view-btn" onclick="setCameraView('isometric')" aria-label="Isometric view">ISO</button>
+      <button class="view-btn" onclick="resetCamera()" aria-label="Reset camera" style="background:var(--accent);color:#fff;border-color:var(--accent)">Reset</button>
     </div>
   </div>
 
-  <div id="panel-right">
+  <!-- RIGHT PANEL -->
+  <div id="panel-right" role="complementary" aria-label="Bone details">
     <div class="panel-header">
       Bone Details
-      <button class="close-panel-btn" onclick="toggleSidebar('right')">✕</button>
+      <button class="close-panel-btn" onclick="toggleSidebar('right')" aria-label="Close bone details">✕</button>
     </div>
-    
-    <div id="bone-detail">
+
+    <!-- Bone detail -->
+    <div id="bone-detail" aria-live="polite">
       <div class="detail-placeholder">
         <span class="icon">🔬</span>
         Select any structure to view<br>anatomical details
       </div>
     </div>
 
-    <div id="quiz-panel">
+    <!-- Quiz panel -->
+    <div id="quiz-panel" role="region" aria-label="Anatomy quiz">
       <div class="quiz-score-wrap">
         <div class="quiz-score-bar">
           <div class="stat-chip"><div class="stat-num" id="quiz-score" style="color:var(--correct)">0</div><div class="stat-label">Score</div></div>
           <div class="stat-chip"><div class="stat-num" id="quiz-total" style="color:var(--text2)">0</div><div class="stat-label">Total</div></div>
         </div>
         <div style="display:flex;gap:6px">
-          <button class="section-tab active" style="flex:1;text-align:center" onclick="setQuizLevel('beginner',this)">Beginner</button>
-          <button class="section-tab" style="flex:1;text-align:center" onclick="setQuizLevel('intermediate',this)">Med</button>
-          <button class="section-tab" style="flex:1;text-align:center" onclick="setQuizLevel('advanced',this)">Hard</button>
+          <button class="section-tab active" style="flex:1;text-align:center" onclick="setQuizLevel('beginner',this)"     aria-label="Beginner">Beginner</button>
+          <button class="section-tab"        style="flex:1;text-align:center" onclick="setQuizLevel('intermediate',this)" aria-label="Intermediate">Med</button>
+          <button class="section-tab"        style="flex:1;text-align:center" onclick="setQuizLevel('advanced',this)"     aria-label="Advanced">Hard</button>
+        </div>
+        <!-- Timer row -->
+        <div class="quiz-controls-row">
+          <button class="section-tab" id="btn-timer" onclick="toggleQuizTimer()" aria-label="Toggle quiz timer" aria-pressed="false">⏱ Timer</button>
+          <div id="quiz-timer-wrap" style="display:none" aria-live="polite">
+            <span id="quiz-timer-display" class="timer-num">30</span><span class="timer-s">s</span>
+          </div>
+          <button class="section-tab" onclick="showFinalScore()" aria-label="End quiz" style="margin-left:auto;background:rgba(239,68,68,0.15);color:var(--wrong);border-color:rgba(239,68,68,0.3)">🏁 End</button>
         </div>
       </div>
-      <div class="quiz-question" id="quiz-question">Identify the structure:<span>Loading...</span></div>
-      <div class="quiz-feedback" id="quiz-feedback"></div>
-      <button class="action-btn" onclick="nextQuizQuestion()">Skip Question ⏭</button>
+      <div class="quiz-question" id="quiz-question" aria-live="polite">Identify the structure:<span>Loading...</span></div>
+      <div class="quiz-feedback" id="quiz-feedback" role="alert"></div>
+      <button class="action-btn" onclick="nextQuizQuestion()" aria-label="Skip to next question">Skip Question ⏭</button>
+    </div>
+
+    <!-- Quiz final score screen -->
+    <div id="quiz-final" role="region" aria-label="Quiz results" style="display:none">
+      <div class="quiz-final-icon">🎓</div>
+      <div class="quiz-final-title">Quiz Complete!</div>
+      <div class="quiz-final-stats">
+        <div class="stat-chip"><div class="stat-num" id="qf-score-display">0/0</div><div class="stat-label">Score</div></div>
+        <div class="stat-chip"><div class="stat-num" id="qf-pct">0%</div><div class="stat-label">Accuracy</div></div>
+      </div>
+      <div class="qf-grade" id="qf-grade">—</div>
+      <button class="action-btn" style="margin-top:16px" onclick="restartQuiz()" aria-label="Play again">🔄 Play Again</button>
+      <button class="action-btn" style="background:rgba(255,255,255,0.05);color:var(--text);margin-top:8px" onclick="setMode('normal')" aria-label="Exit quiz">← Exit Quiz</button>
+    </div>
+
+    <!-- Annotation panel -->
+    <div id="annotation-panel" role="region" aria-label="Annotations" style="display:none">
+      <div style="padding:14px 16px 8px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text)">
+        📌 Annotations
+        <span style="font-size:11px;color:var(--text2);font-weight:400;display:block;margin-top:2px">Click bones in 3D to add pins</span>
+      </div>
+      <div id="annotation-list" style="padding:12px;overflow-y:auto;flex:1"></div>
     </div>
   </div>
 </div>
 
+<!-- Annotation form (fixed overlay, appears near click point) -->
+<div id="annotation-form" role="dialog" aria-label="Add annotation" aria-modal="true" style="display:none">
+  <div class="ann-form-header">📌 Add Annotation</div>
+  <input  id="ann-title-input" type="text"  placeholder="Title (required)" maxlength="60"
+    onkeydown="if(event.key==='Enter')window.saveAnnotationForm();if(event.key==='Escape')window.cancelAnnotationForm()">
+  <textarea id="ann-note-input" placeholder="Clinical note (optional)" rows="3" maxlength="300"
+    onkeydown="if(event.key==='Escape')window.cancelAnnotationForm()"></textarea>
+  <div class="ann-form-actions">
+    <button class="action-btn" onclick="saveAnnotationForm()"   style="flex:1">Save 💾</button>
+    <button class="action-btn" onclick="cancelAnnotationForm()" style="background:rgba(255,255,255,0.05);color:var(--text);flex:1">Cancel</button>
+  </div>
+</div>
 
+<!-- Presentation Mode Overlay (fixed, full screen) -->
+<div id="presentation-overlay" role="region" aria-label="Presentation mode" style="display:none">
+  <button id="pres-exit-btn" onclick="togglePresentation()" aria-label="Exit presentation mode">✕ Exit Presentation</button>
+  <div id="pres-bone-info">
+    <div id="pres-name">OsteoVis</div>
+    <div id="pres-latin">Click any bone to begin</div>
+    <div id="pres-desc"></div>
+  </div>
+</div>
 
-
-
-
-
-
-
+<!-- Mobile bottom navigation -->
+<div id="mobile-nav" role="navigation" aria-label="Mobile mode navigation">
+  <button class="mobile-nav-btn active" id="mnav-normal"  onclick="setMode('normal')"  aria-label="Explore mode"><span class="nav-icon" aria-hidden="true">🔍</span>Explore</button>
+  <button class="mobile-nav-btn"        id="mnav-explode" onclick="setMode('explode')" aria-label="Explode view"><span class="nav-icon" aria-hidden="true">💥</span>Explode</button>
+  <button class="mobile-nav-btn"        id="mnav-learn"   onclick="setMode('learn')"   aria-label="Systems mode"><span class="nav-icon" aria-hidden="true">🫀</span>Systems</button>
+  <button class="mobile-nav-btn"        id="mnav-quiz"    onclick="setMode('quiz')"    aria-label="Quiz mode"><span class="nav-icon" aria-hidden="true">🧠</span>Quiz</button>
+</div>
 
 <script type="module" src="/src/js/main.js"></script>
 </body>

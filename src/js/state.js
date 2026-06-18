@@ -11,5 +11,17 @@ export const state = {
   boneBasePositions: {},
   boneBaseScales: {},
   boneBaseQuaternions: {},
-  labels: {}
+  labels: {},
+  modelGroup: null,
+  boneAllMeshes: [],
+  boneMeshGroups: {},
+  isMeasuring: false,
+  isAnnotating: false,
+  isXRay: false,
+  isSection: false,
+  isPresentationMode: false,
+  isIsolated: false,
+  annotations: {},
+  annotationMeshes: {},
+  annotationLabels: {},
 };

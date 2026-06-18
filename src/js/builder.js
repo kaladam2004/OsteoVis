@@ -19,7 +19,7 @@ const shaderModifier = (shader) => {
     vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
     vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
     vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
-    float snoise(vec3 v){ 
+    float snoise(vec3 v){
       const vec2  C = vec2(1.0/6.0, 1.0/3.0);
       const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
       vec3 i  = floor(v + dot(v, C.yyy) );
@@ -31,10 +31,10 @@ const shaderModifier = (shader) => {
       vec3 x1 = x0 - i1 + C.xxx;
       vec3 x2 = x0 - i2 + C.yyy;
       vec3 x3 = x0 - D.yyy;
-      i = mod289(i); 
-      vec4 p = permute( permute( permute( 
+      i = mod289(i);
+      vec4 p = permute( permute( permute(
                  i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
-               + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
+               + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))
                + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
       float n_ = 0.142857142857;
       vec3  ns = n_ * D.wyz - D.xzx;
@@ -74,22 +74,58 @@ const shaderModifier = (shader) => {
 };
 boneMat.onBeforeCompile = shaderModifier;
 
+// Bones that the heuristic segmenter names generically — map to best ANATOMY_DB id
+const HEURISTIC_OVERRIDE = {
+  'skull':            'frontal',
+  'pelvisr':          'ilium_r',
+  'pelvisl':          'ilium_l',
+  'footr':            'calcaneus_r',
+  'footl':            'calcaneus_l',
+  'phalangesfootr':   'toe_pp_r1',
+  'phalangesfootl':   'toe_pp_l1',
+  'handr':            'scaphoid_r',
+  'handl':            'scaphoid_l',
+};
+
+// Vertebra IDs sorted cervical → lumbar for Y-position assignment
+const SPINE_IDS = [
+  'c6','c7',
+  't1','t2','t3','t4','t5','t6','t7','t8','t9','t10','t11','t12',
+  'l1','l2','l3','l4','l5',
+];
+
 function mapBoneName(meshName) {
   const name = meshName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  for(const b of ANATOMY_DB) {
-     const dbName = b.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-     const dbLatin = b.latinName.toLowerCase().replace(/[^a-z0-9]/g, '');
-     const id = b.id.toLowerCase().replace(/[^a-z0-9]/g, '');
-     if (name.includes(id) || id.includes(name) || name.includes(dbName) || name.includes(dbLatin)) {
-        return b.id;
-     }
+
+  // 1. Direct heuristic override (exact key match)
+  if (HEURISTIC_OVERRIDE[name]) return HEURISTIC_OVERRIDE[name];
+
+  // 2. Numbered heuristic variants: "skull1", "pelvisr2", etc.
+  for (const [key, val] of Object.entries(HEURISTIC_OVERRIDE)) {
+    if (name.startsWith(key) && /^\d+$/.test(name.slice(key.length))) return val;
+  }
+
+  // 3. Exact ANATOMY_DB id match (prevents rib_r1 matching rib_r10)
+  for (const b of ANATOMY_DB) {
+    const id = b.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (name === id) return b.id;
+  }
+
+  // 4. Substring / contains match (fallback)
+  for (const b of ANATOMY_DB) {
+    const id    = b.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const dbName  = b.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const dbLatin = b.latinName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (name.includes(id) || id.includes(name) || name.includes(dbName) || name.includes(dbLatin)) {
+      return b.id;
+    }
   }
   return null;
 }
 
 function createLabel(id, mesh) {
-  const data = ANATOMY_DB.find(b=>b.id===id);
-  if(!data) return;
+  const data = ANATOMY_DB.find(b => b.id === id);
+  if (!data) return;
   const div = document.createElement('div');
   div.className = 'bone-label';
   div.textContent = data.name;
@@ -100,102 +136,143 @@ function createLabel(id, mesh) {
 
 function showFallbackUI() {
   const loading = document.getElementById('loading');
-  if(loading) loading.style.display = 'none';
-  
+  if (loading) loading.style.display = 'none';
   const fallback = document.createElement('div');
   fallback.id = 'fallback-msg';
-  fallback.style.position = 'absolute';
-  fallback.style.inset = '0';
-  fallback.style.display = 'flex';
-  fallback.style.alignItems = 'center';
-  fallback.style.justifyContent = 'center';
-  fallback.style.zIndex = '500';
-  fallback.style.backdropFilter = 'blur(10px)';
-  fallback.style.backgroundColor = 'rgba(10,10,12,0.8)';
+  fallback.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(10px);background:rgba(10,10,12,0.8)';
   fallback.innerHTML = `
-    <div style="background:rgba(20,20,25,0.95); padding:40px; border-radius:12px; border:1px solid var(--accent); text-align:center; max-width:500px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
-      <h2 style="color:var(--accent); margin-bottom:15px; font-size:24px;">Model Not Found</h2>
-      <p style="color:var(--text); line-height:1.6; margin-bottom:20px; font-size:16px;">
-        Separated skeleton model not found.<br><br>
-        Please place your separated <strong>human-skeleton-separated-final.glb</strong> file in the <code style="color:var(--accent2)">public/models/</code> directory.
+    <div style="background:rgba(20,20,25,0.95);padding:40px;border-radius:12px;border:1px solid var(--accent);text-align:center;max-width:500px;box-shadow:0 10px 40px rgba(0,0,0,0.5)">
+      <h2 style="color:var(--accent);margin-bottom:15px;font-size:24px">Model Not Found</h2>
+      <p style="color:var(--text);line-height:1.6;margin-bottom:20px;font-size:16px">
+        Please place <strong>human-skeleton-separated-final.glb</strong> in <code style="color:var(--accent2)">public/models/</code>
       </p>
-      <div style="font-size:50px;">💀</div>
-    </div>
-  `;
+      <div style="font-size:50px">💀</div>
+    </div>`;
   document.getElementById('canvas-wrap').appendChild(fallback);
 }
 
 export function loadSkeletonModel() {
   return new Promise((resolve, reject) => {
     const loader = new GLTFLoader();
-    loader.load('/models/human-skeleton-separated-final.glb', (gltf) => {
-       const model = gltf.scene;
-       const meshes = [];
-       
-       model.traverse((child) => {
-         if (child.isMesh && child.visible) {
-            meshes.push(child);
-         }
-       });
-       
-       const modelGroup = new THREE.Group();
-       scene.add(modelGroup);
 
-       meshes.forEach((child) => {
-          modelGroup.add(child);
-          child.material = boneMat.clone();
-          child.castShadow = true;
-          child.receiveShadow = true;
-          
-          const mappedId = mapBoneName(child.name);
-          const finalId = mappedId ? mappedId : ('unmapped_' + child.uuid);
-          
-          child.userData.boneId = finalId;
+    const onProgress = (xhr) => {
+      if (xhr.lengthComputable) {
+        const bar = document.getElementById('loading-bar');
+        if (bar) bar.style.width = ((xhr.loaded / xhr.total) * 100) + '%';
+      }
+    };
+
+    loader.load('/models/human-skeleton-separated-final.glb', (gltf) => {
+      const model = gltf.scene;
+      const meshes = [];
+      model.traverse(child => { if (child.isMesh && child.visible) meshes.push(child); });
+
+      // ── Step 1: Pre-assign Spine meshes by Y position (highest = cervical) ──
+      const spineMeshes = meshes.filter(c => /^spine/i.test(c.name));
+      spineMeshes.sort((a, b) => b.position.y - a.position.y);
+      const spineAssign = new Map();
+      spineMeshes.forEach((mesh, i) => {
+        if (i < SPINE_IDS.length) spineAssign.set(mesh.uuid, SPINE_IDS[i]);
+      });
+
+      // ── Step 2: Build modelGroup ──
+      const modelGroup = new THREE.Group();
+      scene.add(modelGroup);
+      state.modelGroup = modelGroup;
+
+      meshes.forEach(child => {
+        modelGroup.add(child);
+        child.material = boneMat.clone();
+        child.castShadow = true;
+        child.receiveShadow = true;
+
+        // Resolve bone ID
+        let finalId;
+        if (spineAssign.has(child.uuid)) {
+          finalId = spineAssign.get(child.uuid);
+        } else {
+          const mapped = mapBoneName(child.name);
+          finalId = mapped || ('unmapped_' + child.uuid);
+        }
+
+        child.userData.boneId = finalId;
+
+        // Track every mesh for raycasting
+        state.boneAllMeshes.push(child);
+
+        // Group fragments by bone ID for material operations
+        if (!state.boneMeshGroups[finalId]) state.boneMeshGroups[finalId] = [];
+        state.boneMeshGroups[finalId].push(child);
+
+        // Only store FIRST mesh per ID as "primary" (for labels / zoom / detail)
+        if (!state.boneMeshes[finalId]) {
           state.boneMeshes[finalId] = child;
           state.boneBasePositions[finalId] = child.position.clone();
-          state.boneBaseScales[finalId] = child.scale.clone();
+          state.boneBaseScales[finalId]    = child.scale.clone();
           state.boneBaseQuaternions[finalId] = child.quaternion.clone();
-          
-          if(mappedId) createLabel(mappedId, child);
-       });
-       
-       // Center and Scale
-       const box = new THREE.Box3().setFromObject(modelGroup);
-       const size = box.getSize(new THREE.Vector3());
-       if(size.y > 0) {
-          const scale = 1.8 / size.y;
-          modelGroup.scale.setScalar(scale);
-          modelGroup.updateMatrixWorld(true);
-       }
-       
-       const newBox = new THREE.Box3().setFromObject(modelGroup);
-       const offset = -newBox.min.y - 0.9;
-       modelGroup.position.y += offset;
-       modelGroup.updateMatrixWorld(true);
-       
-       // Re-read world positions into base positions
-       meshes.forEach(c => {
-          const worldPos = new THREE.Vector3();
-          c.getWorldPosition(worldPos);
-          // Wait, for zoom-forward we use parent.worldToLocal, so we should keep the LOCAL transform!
-          // Actually, our zoom-forward uses `targetLocal = mesh.parent.worldToLocal(targetWorld)`.
-          // We MUST store local transforms to restore them on Reset.
-          state.boneBasePositions[c.userData.boneId].copy(c.position);
-          state.boneBaseQuaternions[c.userData.boneId].copy(c.quaternion);
-          state.boneBaseScales[c.userData.boneId].copy(c.scale);
-       });
-       
-       const loading = document.getElementById('loading');
-       if(loading) {
-         loading.style.opacity = 0;
-         setTimeout(() => loading.style.display = 'none', 500);
-       }
-       
-       resolve();
-    }, undefined, (error) => {
-       console.error("Failed to load GLB:", error);
-       showFallbackUI();
-       reject(error);
+        }
+
+        // Per-mesh original transform stored in userData (used by explode reset)
+        child.userData.origPosition   = child.position.clone();
+        child.userData.origScale      = child.scale.clone();
+        child.userData.origQuaternion = child.quaternion.clone();
+
+        // Label only for the primary mesh to avoid duplicates
+        if (!state.labels[finalId]) createLabel(finalId, child);
+      });
+
+      // ── Step 3: Scale and center ──
+      const box = new THREE.Box3().setFromObject(modelGroup);
+      const size = box.getSize(new THREE.Vector3());
+      if (size.y > 0) {
+        modelGroup.scale.setScalar(1.8 / size.y);
+        modelGroup.updateMatrixWorld(true);
+      }
+      const newBox = new THREE.Box3().setFromObject(modelGroup);
+      modelGroup.position.y += -newBox.min.y - 0.9;
+      modelGroup.updateMatrixWorld(true);
+
+      // ── Step 4: Re-read local transforms AFTER scaling ──
+      meshes.forEach(c => {
+        const id = c.userData.boneId;
+        // Always keep per-mesh originals accurate
+        c.userData.origPosition.copy(c.position);
+        c.userData.origScale.copy(c.scale);
+        c.userData.origQuaternion.copy(c.quaternion);
+        // Update primary mesh base positions
+        if (state.boneMeshes[id] === c) {
+          state.boneBasePositions[id].copy(c.position);
+          state.boneBaseQuaternions[id].copy(c.quaternion);
+          state.boneBaseScales[id].copy(c.scale);
+        }
+      });
+
+      // ── Step 5: Console mapping report ──
+      const mappedIds   = Object.keys(state.boneMeshes).filter(id => !id.startsWith('unmapped_'));
+      const unmappedIds = Object.keys(state.boneMeshes).filter(id =>  id.startsWith('unmapped_'));
+      const unmappedNames = unmappedIds.map(id => state.boneMeshes[id].name);
+      console.group('%cOsteoVis — Bone Mapping Report', 'color:#3b82f6;font-weight:bold');
+      console.log(`✅ Mapped unique bones : ${mappedIds.length}`);
+      console.log(`❌ Unmapped unique meshes: ${unmappedIds.length}`);
+      console.log(`📦 Total mesh fragments: ${state.boneAllMeshes.length}`);
+      if (unmappedNames.length) console.log('Unmapped mesh names:', unmappedNames);
+      console.groupEnd();
+
+      // Update stats bar
+      document.getElementById('total-bones').textContent  = mappedIds.length;
+      document.getElementById('visible-count').textContent = mappedIds.length;
+
+      const loading = document.getElementById('loading');
+      if (loading) {
+        loading.style.opacity = 0;
+        setTimeout(() => loading.style.display = 'none', 500);
+      }
+      resolve();
+
+    }, onProgress, (error) => {
+      console.error('Failed to load GLB:', error);
+      showFallbackUI();
+      reject(error);
     });
   });
 }

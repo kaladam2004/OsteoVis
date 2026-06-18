@@ -163,8 +163,12 @@ loader.parse(data, '', (gltf) => {
         const size = new THREE.Vector3();
         box.getSize(size);
         
+        // Center the geometry so the mesh position represents its actual physical center!
+        newGeo.translate(-center.x, -center.y, -center.z);
+        
         const safeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
         const newMesh = new THREE.Mesh(newGeo, safeMaterial);
+        newMesh.position.copy(center); // Set the mesh position to the true center
         newMesh.name = getHeuristicName(center, size);
         
         separatedGroup.add(newMesh);
