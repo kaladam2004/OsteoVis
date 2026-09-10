@@ -225,11 +225,13 @@ export function loadSkeletonModel() {
       const box = new THREE.Box3().setFromObject(modelGroup);
       const size = box.getSize(new THREE.Vector3());
       if (size.y > 0) {
-        modelGroup.scale.setScalar(1.8 / size.y);
+        state.skeletonNormScale = 1.8 / size.y;
+        modelGroup.scale.setScalar(state.skeletonNormScale);
         modelGroup.updateMatrixWorld(true);
       }
       const newBox = new THREE.Box3().setFromObject(modelGroup);
       modelGroup.position.y += -newBox.min.y - 0.9;
+      state.skeletonNormOffset = modelGroup.position.y;
       modelGroup.updateMatrixWorld(true);
 
       // ── Step 4: Re-read local transforms AFTER scaling ──

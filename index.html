@@ -50,6 +50,13 @@
     <div class="panel-header" style="display:none" id="mobile-header-left">
       Navigation <button class="close-panel-btn" onclick="toggleSidebar('left')" aria-label="Close navigation">✕</button>
     </div>
+    <!-- System switcher -->
+    <div id="system-switcher" role="tablist" aria-label="Anatomy system">
+      <button class="sys-switch-btn active" id="sw-bones"   onclick="switchPanel('bones')"   aria-label="Skeleton panel" aria-selected="true">🦴 Skeleton</button>
+      <button class="sys-switch-btn"        id="sw-muscles" onclick="switchPanel('muscles')" aria-label="Muscles panel" aria-selected="false">💪 Muscles</button>
+    </div>
+
+    <!-- Search (shared) -->
     <div id="search-wrap">
       <div class="search-wrap-inner">
         <span class="search-icon" aria-hidden="true">🔍</span>
@@ -57,18 +64,67 @@
         <div id="search-results" role="listbox" aria-label="Search results"></div>
       </div>
     </div>
-    <div class="section-tabs" id="section-tabs" role="tablist" aria-label="Bone categories">
-      <button class="section-tab active" data-cat="all"       onclick="filterCategory('all',this)"       role="tab" aria-selected="true">All</button>
-      <button class="section-tab"        data-cat="skull"     onclick="filterCategory('skull',this)"     role="tab" aria-selected="false">Skull</button>
-      <button class="section-tab"        data-cat="vertebral" onclick="filterCategory('vertebral',this)" role="tab" aria-selected="false">Spine</button>
-      <button class="section-tab"        data-cat="thorax"    onclick="filterCategory('thorax',this)"    role="tab" aria-selected="false">Thorax</button>
-      <button class="section-tab"        data-cat="upper"     onclick="filterCategory('upper',this)"     role="tab" aria-selected="false">Upper Limb</button>
-      <button class="section-tab"        data-cat="pelvis"    onclick="filterCategory('pelvis',this)"    role="tab" aria-selected="false">Pelvis</button>
-      <button class="section-tab"        data-cat="lower"     onclick="filterCategory('lower',this)"     role="tab" aria-selected="false">Lower Limb</button>
-      <button class="section-tab"        data-cat="hand"      onclick="filterCategory('hand',this)"      role="tab" aria-selected="false">Hand</button>
-      <button class="section-tab"        data-cat="foot"      onclick="filterCategory('foot',this)"      role="tab" aria-selected="false">Foot</button>
+
+    <!-- BONE PANEL -->
+    <div id="bone-panel-section">
+      <div class="section-tabs" id="section-tabs" role="tablist" aria-label="Bone categories">
+        <button class="section-tab active" data-cat="all"       onclick="filterCategory('all',this)"       role="tab" aria-selected="true">All</button>
+        <button class="section-tab"        data-cat="skull"     onclick="filterCategory('skull',this)"     role="tab" aria-selected="false">Skull</button>
+        <button class="section-tab"        data-cat="vertebral" onclick="filterCategory('vertebral',this)" role="tab" aria-selected="false">Spine</button>
+        <button class="section-tab"        data-cat="thorax"    onclick="filterCategory('thorax',this)"    role="tab" aria-selected="false">Thorax</button>
+        <button class="section-tab"        data-cat="upper"     onclick="filterCategory('upper',this)"     role="tab" aria-selected="false">Upper Limb</button>
+        <button class="section-tab"        data-cat="pelvis"    onclick="filterCategory('pelvis',this)"    role="tab" aria-selected="false">Pelvis</button>
+        <button class="section-tab"        data-cat="lower"     onclick="filterCategory('lower',this)"     role="tab" aria-selected="false">Lower Limb</button>
+        <button class="section-tab"        data-cat="hand"      onclick="filterCategory('hand',this)"      role="tab" aria-selected="false">Hand</button>
+        <button class="section-tab"        data-cat="foot"      onclick="filterCategory('foot',this)"      role="tab" aria-selected="false">Foot</button>
+      </div>
+      <div id="bone-list" role="list" aria-label="Bone list"></div>
     </div>
-    <div id="bone-list" role="list" aria-label="Bone list"></div>
+
+    <!-- MUSCLE PANEL -->
+    <div id="muscle-panel-section" class="hidden-panel">
+      <div id="muscle-category-tabs" class="section-tabs" role="tablist" aria-label="Muscle categories" style="display:none">
+        <button class="section-tab muscle-cat-tab active" onclick="filterMuscleCategory('all',this)">All</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('head',this)">Head</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('neck',this)">Neck</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('back',this)">Back</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('chest',this)">Chest</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('shoulder',this)">Shoulder</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('arm',this)">Arm</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('forearm',this)">Forearm</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('hand',this)">Hand</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('abdominal',this)">Abdomen</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('hip',this)">Hip</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('thigh',this)">Thigh</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('leg',this)">Leg</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('foot',this)">Foot</button>
+      </div>
+      <!-- Display mode controls — independent skeleton / muscles / combined -->
+      <div id="display-mode-row" role="group" aria-label="Display mode">
+        <button id="btn-dm-skeleton"  class="display-mode-btn"        onclick="setDisplayMode('skeleton')"  aria-label="Skeleton only"  title="Show skeleton only">🦴 Skeleton</button>
+        <button id="btn-dm-muscles"   class="display-mode-btn"        onclick="setDisplayMode('muscles')"   aria-label="Muscles only"   title="Show muscles only">💪 Muscles</button>
+        <button id="btn-dm-combined"  class="display-mode-btn active" onclick="setDisplayMode('combined')"  aria-label="Combined view"  title="Show both">⚕ Combined</button>
+      </div>
+      <div id="muscle-list" role="list" aria-label="Muscle list"></div>
+
+      <!-- Missing model state (shown when no GLB or load fails) -->
+      <div id="muscle-missing-state" role="status" aria-live="polite" style="display:none">
+        <div class="mmissing-icon" aria-hidden="true">💪</div>
+        <div class="mmissing-title">Real 3D Muscle Model Not Found</div>
+        <div class="mmissing-body">
+          To enable the Muscular System, add a real human anatomy GLB file:
+        </div>
+        <code class="mmissing-path">public/models/human-muscles.glb</code>
+        <div class="mmissing-hint">
+          Sources: Sketchfab, TurboSquid, or any anatomically accurate human muscles 3D model in GLB/GLTF format.
+        </div>
+        <code class="mmissing-error" style="display:none;font-size:10px;color:#f87171;word-break:break-all;margin-top:6px;padding:6px;background:rgba(239,68,68,0.1);border-radius:4px;white-space:pre-wrap"></code>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="missing-close-btn" onclick="retryMuscleLoad()" aria-label="Retry loading muscle model" style="background:rgba(59,130,246,0.2);border-color:#3b82f6;color:#93c5fd">↺ Retry</button>
+          <button class="missing-close-btn" onclick="switchPanel('bones')" aria-label="Go back to skeleton">← Back to Skeleton</button>
+        </div>
+      </div>
+    </div>
     <div id="stats-bar" aria-live="polite">
       <div class="stat-chip"><div class="stat-num" id="total-bones">206</div><div class="stat-label">Bones</div></div>
       <div class="stat-chip"><div class="stat-num" id="visible-count">206</div><div class="stat-label">Visible</div></div>
@@ -131,10 +187,28 @@
       <button class="view-btn" onclick="resetSection()" style="margin-top:4px;width:100%;font-size:11px" aria-label="Reset all clipping planes">Reset All</button>
     </div>
 
-    <!-- Layer placeholder notification -->
+    <!-- Layer placeholder / muscle-missing notification -->
     <div id="layer-placeholder" role="status" aria-live="polite" style="display:none">
       <span aria-hidden="true">🔧</span>
       <span><strong class="layer-ph-name">Layer</strong> model not added yet.</span>
+    </div>
+
+    <!-- Opacity sliders (shown when muscles panel is active and model loaded) -->
+    <div id="layer-opacity-panel" style="display:none" role="group" aria-label="Layer opacity controls">
+      <div class="opacity-row">
+        <span class="opacity-label">🦴</span>
+        <input type="range" class="opacity-slider" id="skeleton-opacity-slider"
+          min="0.05" max="1" step="0.05" value="1"
+          oninput="setSkeletonOpacityLevel(this.value)" aria-label="Skeleton opacity">
+        <span id="skeleton-opacity-label" class="opacity-pct">100%</span>
+      </div>
+      <div class="opacity-row">
+        <span class="opacity-label">💪</span>
+        <input type="range" class="opacity-slider" id="muscle-opacity-slider"
+          min="0.05" max="1" step="0.05" value="0.88"
+          oninput="setMuscleOpacity(this.value)" aria-label="Muscle opacity">
+        <span id="muscle-opacity-label" class="opacity-pct">88%</span>
+      </div>
     </div>
 
     <!-- Measure overlay -->
@@ -191,6 +265,9 @@
         Select any structure to view<br>anatomical details
       </div>
     </div>
+
+    <!-- Muscle detail -->
+    <div id="muscle-detail" aria-live="polite" style="display:none"></div>
 
     <!-- Quiz panel -->
     <div id="quiz-panel" role="region" aria-label="Anatomy quiz">

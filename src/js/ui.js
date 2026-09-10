@@ -3,9 +3,10 @@ import * as THREE from 'three';
 import TWEEN from '@tweenjs/tween.js';
 import { state } from './state.js';
 import { ANATOMY_DB, BONE_CLINICAL_DATA } from './data.js';
+import { MUSCLE_DB, MUSCLE_CATEGORIES } from './muscles_data.js';
 import { camera, renderer, composer } from './scene.js';
 import { setQuizLevel, nextQuizQuestion, stopQuizTimer, showFinalScore, restartQuiz, toggleQuizTimer } from './quiz.js';
-import { setLayer } from './layers.js';
+import { setLayer as _setLayerBase } from './layers.js';
 import { savePrefs, updateURL } from './persistence.js';
 import { clearMeasure as _clearMeasure } from './measure.js';
 import { createAnnotation, deleteAnnotation as _deleteAnnotation } from './annotations.js';
@@ -111,10 +112,11 @@ export function applyTeacherMode(id) {
 // ─── X-Ray mode ───────────────────────────────────────────────────────────────
 
 function _applyXRay() {
-  state.boneAllMeshes.forEach(m => {
+  const anatomyMeshes = [...state.boneAllMeshes, ...state.muscleAllMeshes];
+  anatomyMeshes.forEach(m => {
     m.material.transparent = true;
-    m.material.opacity = 0.22;
-    m.material.color.setHex(0x999999);
+    m.material.opacity = m.userData.muscleId ? 0.16 : 0.22;
+    m.material.color.setHex(m.userData.muscleId ? 0xb91c1c : 0x999999);
     m.material.emissiveIntensity = 0;
   });
   if (state.selectedBone) {
@@ -150,6 +152,12 @@ export function toggleXRay() {
         m.material.emissiveIntensity = 0.6;
       });
     }
+    state.muscleAllMeshes.forEach(m => {
+      m.material.transparent = true;
+      m.material.opacity = state.muscleOpacity;
+      m.material.color.setHex(0xc0392b);
+      m.material.emissiveIntensity = 0;
+    });
   }
 }
 
@@ -249,7 +257,9 @@ export function toggleMeasure() {
   // Measurement and annotate are mutually exclusive
   if (state.isMeasuring && state.isAnnotating) {
     state.isAnnotating = false;
-    document.getElementById('btn-annotate')?.classList.remove('active');
+    const annotateBtn = document.getElementById('btn-annotate');
+    annotateBtn?.classList.remove('active');
+    annotateBtn?.setAttribute('aria-pressed', 'false');
     document.getElementById('annotation-panel').style.display = 'none';
     if (state.currentMode !== 'quiz') document.getElementById('bone-detail').style.display = 'block';
   }
@@ -276,7 +286,9 @@ export function toggleAnnotate() {
   state.isAnnotating = !state.isAnnotating;
   if (state.isAnnotating && state.isMeasuring) {
     state.isMeasuring = false;
-    document.getElementById('btn-measure')?.classList.remove('active');
+    const measureBtn = document.getElementById('btn-measure');
+    measureBtn?.classList.remove('active');
+    measureBtn?.setAttribute('aria-pressed', 'false');
     document.getElementById('measure-overlay').style.display = 'none';
     _clearMeasure();
   }
@@ -586,16 +598,28 @@ export function filterCategory(cat, btn) {
 }
 
 export function doSearch(q) {
-  q = q.toLowerCase();
   const res = document.getElementById('search-results');
   if (!q) { res.style.display = 'none'; return; }
-  const matches = ANATOMY_DB.filter(b =>
-    b.name.toLowerCase().includes(q) || b.latinName.toLowerCase().includes(q)
-  );
-  res.innerHTML = matches.map(b =>
-    `<div class="search-result-item" role="button" tabindex="0" onclick="window.selectBone('${b.id}');document.getElementById('search-results').style.display='none'">${b.name} <span class="search-result-latin">${b.latinName}</span></div>`
-  ).join('');
-  res.style.display = matches.length ? 'block' : 'none';
+  const lq = q.toLowerCase();
+
+  if (state.activePanel === 'muscles') {
+    const matches = MUSCLE_DB.filter(m =>
+      m.name.toLowerCase().includes(lq) || m.latinName.toLowerCase().includes(lq) ||
+      m.function?.toLowerCase().includes(lq) || m.innervation?.toLowerCase().includes(lq)
+    );
+    res.innerHTML = matches.map(m =>
+      `<div class="search-result-item" role="button" tabindex="0" onclick="window.selectMuscle('${m.id}');document.getElementById('search-results').style.display='none'">${m.name} <span class="search-result-latin">${m.latinName}</span></div>`
+    ).join('');
+    res.style.display = matches.length ? 'block' : 'none';
+  } else {
+    const matches = ANATOMY_DB.filter(b =>
+      b.name.toLowerCase().includes(lq) || b.latinName.toLowerCase().includes(lq)
+    );
+    res.innerHTML = matches.map(b =>
+      `<div class="search-result-item" role="button" tabindex="0" onclick="window.selectBone('${b.id}');document.getElementById('search-results').style.display='none'">${b.name} <span class="search-result-latin">${b.latinName}</span></div>`
+    ).join('');
+    res.style.display = matches.length ? 'block' : 'none';
+  }
 }
 
 // ─── Camera controls ──────────────────────────────────────────────────────────
@@ -665,5 +689,411 @@ export function toggleRotate() {
   btn.setAttribute('aria-pressed', String(state.isRotating));
 }
 
+// ─── Muscular System ─────────────────────────────────────────────────────────
+
+// ── Display Mode: skeleton | muscles | combined ───────────────────────────────
+export function setDisplayMode(mode) {
+  if (!state.muscleModelLoaded && mode !== 'skeleton') return;
+
+  state.displayMode = mode;
+
+  const showBones   = mode === 'skeleton' || mode === 'combined';
+  const showMuscles = mode === 'muscles'  || mode === 'combined';
+
+  // Skeleton visibility — iterate individual meshes so nothing else is affected
+  state.skeletonVisible = showBones;
+  state.boneAllMeshes.forEach(m => { m.visible = showBones; });
+
+  // Muscle group visibility — independent top-level group
+  if (state.muscleGroup) state.muscleGroup.visible = showMuscles;
+
+  // Button states
+  document.querySelectorAll('.display-mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`btn-dm-${mode}`)?.classList.add('active');
+
+  // Opacity panel only useful in combined mode
+  const opPanel = document.getElementById('layer-opacity-panel');
+  if (opPanel) opPanel.style.display = mode === 'combined' ? 'flex' : 'none';
+}
+
+export function switchPanel(panel, eventDetail) {
+  if (panel === 'muscles' && !state.muscleModelLoaded) {
+    if (state.muscleModelLoading) {
+      _showMuscleLoadingOverlay();
+    } else {
+      _showMuscleMissingOverlay(eventDetail?.reason);
+    }
+    return;
+  }
+
+  state.activePanel = panel;
+
+  const boneSection    = document.getElementById('bone-panel-section');
+  const muscleSection  = document.getElementById('muscle-panel-section');
+  const muscleTabs     = document.getElementById('muscle-category-tabs');
+  const swBones        = document.getElementById('sw-bones');
+  const swMuscles      = document.getElementById('sw-muscles');
+
+  if (panel === 'muscles') {
+    boneSection?.classList.add('hidden-panel');
+    muscleSection?.classList.remove('hidden-panel');
+    if (muscleTabs) muscleTabs.style.display = 'flex';
+    swBones?.classList.remove('active');
+    swMuscles?.classList.add('active');
+    document.querySelector('.layer-btn[data-layer="muscles"]')?.classList.add('active');
+    document.querySelector('.layer-btn[data-layer="skeleton"]')?.classList.remove('active');
+    document.getElementById('search-input').placeholder = 'Search muscles…';
+    // Ensure list is visible (loading/missing overlays may have hidden it)
+    const list    = document.getElementById('muscle-list');
+    const missing = document.getElementById('muscle-missing-state');
+    if (list)    list.style.display = '';
+    if (missing) missing.style.display = 'none';
+    // Default to combined view when entering muscles panel
+    setDisplayMode('combined');
+    buildMuscleList('all');
+  } else {
+    muscleSection?.classList.add('hidden-panel');
+    boneSection?.classList.remove('hidden-panel');
+    if (muscleTabs) muscleTabs.style.display = 'none';
+    swMuscles?.classList.remove('active');
+    swBones?.classList.add('active');
+    document.querySelector('.layer-btn[data-layer="skeleton"]')?.classList.add('active');
+    document.querySelector('.layer-btn[data-layer="muscles"]')?.classList.remove('active');
+    document.getElementById('search-input').placeholder = 'Search anatomy database…';
+    // Back to skeleton-only view
+    setDisplayMode('skeleton');
+    _clearMuscleHighlights();
+    _clearMuscleMeshHighlight();
+    const md = document.getElementById('muscle-detail');
+    const bd = document.getElementById('bone-detail');
+    if (md) md.style.display = 'none';
+    if (bd && state.currentMode !== 'quiz' && !state.isAnnotating) bd.style.display = 'block';
+    const ms = document.getElementById('muscle-missing-state');
+    if (ms) {
+      ms.style.display = 'none';
+      const title  = ms.querySelector('.mmissing-title');
+      const body   = ms.querySelector('.mmissing-body');
+      const errDiv = ms.querySelector('.mmissing-error');
+      const path   = ms.querySelector('.mmissing-path');
+      const hint   = ms.querySelector('.mmissing-hint');
+      if (title)  title.textContent = 'Real 3D Muscle Model Not Found';
+      if (body)   body.textContent  = 'To enable the Muscular System, add a real human anatomy GLB file:';
+      if (errDiv) { errDiv.textContent = ''; errDiv.style.display = 'none'; }
+      if (path)   path.style.display = '';
+      if (hint)   hint.style.display = '';
+    }
+  }
+}
+
+function _showMuscleLoadingOverlay() {
+  const boneSection   = document.getElementById('bone-panel-section');
+  const muscleSection = document.getElementById('muscle-panel-section');
+  const muscleTabs    = document.getElementById('muscle-category-tabs');
+  const swBones       = document.getElementById('sw-bones');
+  const swMuscles     = document.getElementById('sw-muscles');
+  const list          = document.getElementById('muscle-list');
+  const missing       = document.getElementById('muscle-missing-state');
+
+  boneSection?.classList.add('hidden-panel');
+  muscleSection?.classList.remove('hidden-panel');
+  if (muscleTabs) muscleTabs.style.display = 'none';
+  swBones?.classList.remove('active');
+  swMuscles?.classList.add('active');
+  if (list)    list.style.display = 'none';
+  if (missing) {
+    missing.style.display = 'flex';
+    const title = missing.querySelector('.mmissing-title');
+    const body  = missing.querySelector('.mmissing-body');
+    const path  = missing.querySelector('.mmissing-path');
+    const hint  = missing.querySelector('.mmissing-hint');
+    if (title) title.textContent = 'Loading Muscular System…';
+    if (body)  body.textContent  = 'Downloading 3D muscle model, please wait.';
+    if (path)  path.style.display = 'none';
+    if (hint)  hint.style.display = 'none';
+  }
+}
+
+function _showMuscleMissingOverlay(reason) {
+  const muscleSection = document.getElementById('muscle-panel-section');
+  const boneSection   = document.getElementById('bone-panel-section');
+  const muscleTabs    = document.getElementById('muscle-category-tabs');
+  const swBones       = document.getElementById('sw-bones');
+  const swMuscles     = document.getElementById('sw-muscles');
+
+  if (!muscleSection) return;
+
+  boneSection?.classList.add('hidden-panel');
+  muscleSection?.classList.remove('hidden-panel');
+  if (muscleTabs) muscleTabs.style.display = 'none';
+  swBones?.classList.remove('active');
+  swMuscles?.classList.add('active');
+
+  const list = document.getElementById('muscle-list');
+  if (list) list.style.display = 'none';
+
+  const missing = document.getElementById('muscle-missing-state');
+  if (missing) {
+    missing.style.display = 'flex';
+    const title  = missing.querySelector('.mmissing-title');
+    const body   = missing.querySelector('.mmissing-body');
+    const errDiv = missing.querySelector('.mmissing-error');
+    const path   = missing.querySelector('.mmissing-path');
+    const hint   = missing.querySelector('.mmissing-hint');
+    if (title) title.textContent = 'Muscle Model Failed to Load';
+    if (body)  body.textContent  = 'The file exists but could not be loaded:';
+    if (errDiv && reason) { errDiv.textContent = reason; errDiv.style.display = 'block'; }
+    if (path)  path.style.display = 'none';
+    if (hint)  hint.style.display = 'none';
+  }
+
+  document.querySelector('.layer-btn[data-layer="muscles"]')?.classList.remove('active');
+  document.querySelector('.layer-btn[data-layer="skeleton"]')?.classList.remove('active');
+
+  console.warn('OsteoVis Muscles: load failed —', reason || 'unknown reason');
+}
+
+function _clearMuscleHighlights() {
+  state.muscleHighlightedBones.forEach(boneId => {
+    const meshes = state.boneMeshGroups[boneId];
+    if (!meshes) return;
+    meshes.forEach(m => {
+      if (state.isXRay) {
+        m.material.color.setHex(0x999999);
+        m.material.transparent = true;
+        m.material.opacity = 0.22;
+      } else {
+        m.material.color.setHex(0xeae2d2);
+        m.material.transparent = false;
+        m.material.opacity = 1.0;
+      }
+      m.material.emissiveIntensity = 0;
+    });
+  });
+  state.muscleHighlightedBones = [];
+}
+
+function buildMuscleDetailHTML(muscle) {
+  const NA = '<span class="data-na">Not specified</span>';
+  return `
+    <div class="detail-card muscle-card">
+      <div class="muscle-badge">💪 Muscle</div>
+      <h3>${muscle.name}</h3>
+      <div class="latin">${muscle.latinName}</div>
+      <span class="detail-cat-tag">${muscle.category}</span>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">📍 Origin</div>
+      <div class="detail-text">${muscle.origin || NA}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">📌 Insertion</div>
+      <div class="detail-text">${muscle.insertion || NA}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">⚡ Function</div>
+      <div class="detail-text">${muscle.function || NA}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">🧠 Innervation</div>
+      <div class="detail-text">${muscle.innervation || NA}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">🩸 Blood Supply</div>
+      <div class="detail-text">${muscle.bloodSupply || NA}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">🏥 Clinical Notes</div>
+      <div class="detail-text">${muscle.clinicalNotes || NA}</div>
+    </div>
+    <div id="muscle-bone-highlight-info" class="detail-section" style="display:none">
+      <div class="detail-label">🦴 Highlighted on Skeleton</div>
+      <div class="detail-text" id="muscle-highlight-text"></div>
+    </div>
+  `;
+}
+
+function _clearMuscleMeshHighlight() {
+  if (state.selectedMuscleMesh) {
+    const prev = state.selectedMuscleMesh;
+    (state.muscleMeshGroups[prev.userData.muscleId] || [prev]).forEach(m => {
+      m.material.color.setHex(0xc0392b);   // match createMuscleMat base color
+      m.material.emissive.setHex(0x000000);
+      m.material.emissiveIntensity = 0;
+    });
+    state.selectedMuscleMesh = null;
+  }
+}
+
+export function selectMuscle(id) {
+  const muscle = MUSCLE_DB.find(m => m.id === id);
+  if (!muscle) return;
+
+  state.selectedMuscle = muscle;
+
+  // Deselect any bone
+  if (state.selectedBone) deselectAll();
+
+  // ── 3D muscle mesh highlight (when model is loaded) ────────────────────────
+  _clearMuscleMeshHighlight();
+  _clearMuscleHighlights();
+
+  if (state.muscleModelLoaded) {
+    const primaryMesh = state.muscleMeshes[id];
+    if (primaryMesh) {
+      state.selectedMuscleMesh = primaryMesh;
+      (state.muscleMeshGroups[id] || [primaryMesh]).forEach(m => {
+        m.material.color.setHex(0xfbbf24);   // bright amber highlight on 3D muscle
+        m.material.emissive.setHex(0xfbbf24);
+        m.material.emissiveIntensity = 0.5;
+      });
+    }
+  }
+
+  // ── Bone attachment highlights (always — additional context) ───────────────
+  const toHighlight = [...new Set([...(muscle.originBones || []), ...(muscle.insertionBones || [])])];
+  const highlightedNames = [];
+
+  toHighlight.forEach(boneId => {
+    const meshes = state.boneMeshGroups[boneId];
+    if (!meshes) return;
+    state.muscleHighlightedBones.push(boneId);
+    const col = state.muscleModelLoaded ? 0xe879f9 : 0xdc2626; // purple when 3D loaded, red otherwise
+    meshes.forEach(m => {
+      m.material.color.setHex(col);
+      m.material.emissive.setHex(col);
+      m.material.emissiveIntensity = 0.35;
+      m.material.transparent = false;
+      m.material.opacity = 1.0;
+    });
+    const boneData = ANATOMY_DB.find(b => b.id === boneId);
+    if (boneData) highlightedNames.push(boneData.name);
+  });
+
+  // ── Right panel ─────────────────────────────────────────────────────────────
+  const md = document.getElementById('muscle-detail');
+  const bd = document.getElementById('bone-detail');
+  if (md) { md.innerHTML = buildMuscleDetailHTML(muscle); md.style.display = 'block'; }
+  if (bd) bd.style.display = 'none';
+
+  if (highlightedNames.length) {
+    const infoDiv = document.getElementById('muscle-bone-highlight-info');
+    const textDiv = document.getElementById('muscle-highlight-text');
+    if (infoDiv) infoDiv.style.display = 'block';
+    if (textDiv) textDiv.textContent = highlightedNames.join(', ');
+  }
+
+  // ── List selection ───────────────────────────────────────────────────────────
+  document.querySelectorAll('.muscle-list-item.selected').forEach(el => el.classList.remove('selected'));
+  const item = document.querySelector(`.muscle-list-item[data-muscle-id="${id}"]`);
+  if (item) { item.classList.add('selected'); item.scrollIntoView({ block: 'nearest' }); }
+
+  if (window.innerWidth <= 1024) toggleSidebar('right');
+}
+
+export function deselectMuscle() {
+  if (!state.selectedMuscle) return;
+  state.selectedMuscle = null;
+  _clearMuscleHighlights();
+  _clearMuscleMeshHighlight();
+  document.querySelectorAll('.muscle-list-item.selected').forEach(el => el.classList.remove('selected'));
+  const md = document.getElementById('muscle-detail');
+  const bd = document.getElementById('bone-detail');
+  if (md) { md.style.display = 'none'; md.innerHTML = ''; }
+  if (bd && state.activePanel === 'bones') bd.style.display = 'block';
+}
+
+export function setMuscleOpacity(val) {
+  const opacity = parseFloat(val);
+  state.muscleOpacity = opacity;
+  state.muscleAllMeshes.forEach(m => {
+    m.material.opacity = opacity;
+    m.material.transparent = opacity < 1.0;
+  });
+  const lbl = document.getElementById('muscle-opacity-label');
+  if (lbl) lbl.textContent = Math.round(opacity * 100) + '%';
+}
+
+export function setSkeletonOpacityLevel(val) {
+  const opacity = parseFloat(val);
+  state.skeletonOpacity = opacity;
+  state.boneAllMeshes.forEach(m => {
+    m.material.opacity    = opacity;
+    m.material.transparent = opacity < 1.0;
+  });
+  const lbl = document.getElementById('skeleton-opacity-label');
+  if (lbl) lbl.textContent = Math.round(opacity * 100) + '%';
+}
+
+export function buildMuscleList(filter = 'all') {
+  state.muscleFilter = filter;
+  const list = document.getElementById('muscle-list');
+  if (!list) return;
+  list.innerHTML = '';
+  const items = filter === 'all' ? MUSCLE_DB : MUSCLE_DB.filter(m => m.category === filter);
+  const selId  = state.selectedMuscle ? state.selectedMuscle.id : null;
+  items.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'muscle-list-item bone-list-item';
+    div.dataset.muscleId = m.id;
+    div.tabIndex = 0;
+    div.setAttribute('role', 'button');
+    div.setAttribute('aria-label', `${m.name} — ${m.latinName}`);
+    if (m.id === selId) div.classList.add('selected');
+    div.innerHTML = `<span class="muscle-dot"></span><div><span>${m.name}</span><span class="bone-latin">${m.latinName}</span></div>`;
+    div.addEventListener('click', () => { selectMuscle(m.id); if (window.innerWidth <= 1024) closeAllSidebars(); });
+    div.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectMuscle(m.id); }
+    });
+    list.appendChild(div);
+  });
+}
+
+export function filterMuscleCategory(cat, btn) {
+  document.querySelectorAll('.muscle-cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildMuscleList(cat);
+}
+
+export function doMuscleSearch(q) {
+  if (!q) { buildMuscleList(state.muscleFilter); return; }
+  q = q.toLowerCase();
+  const list = document.getElementById('muscle-list');
+  if (!list) return;
+  list.innerHTML = '';
+  const matches = MUSCLE_DB.filter(m =>
+    m.name.toLowerCase().includes(q) || m.latinName.toLowerCase().includes(q) ||
+    m.function?.toLowerCase().includes(q) || m.innervation?.toLowerCase().includes(q)
+  );
+  matches.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'muscle-list-item bone-list-item';
+    div.dataset.muscleId = m.id;
+    div.tabIndex = 0;
+    div.setAttribute('role', 'button');
+    div.innerHTML = `<span class="muscle-dot"></span><div><span>${m.name}</span><span class="bone-latin">${m.latinName}</span></div>`;
+    div.addEventListener('click', () => selectMuscle(m.id));
+    list.appendChild(div);
+  });
+}
+
+export function toggleSkeletonVisibility() {
+  // Cycle through display modes: skeleton → combined → muscles → skeleton
+  if (state.displayMode === 'skeleton')  setDisplayMode('combined');
+  else if (state.displayMode === 'combined') setDisplayMode('muscles');
+  else setDisplayMode('skeleton');
+}
+
+// Override setLayer to handle skeleton/muscles panel switching
+function _setLayerWrapped(layerKey) {
+  if (layerKey === 'muscles') {
+    switchPanel('muscles');
+  } else if (layerKey === 'skeleton') {
+    switchPanel('bones');
+  } else {
+    _setLayerBase(layerKey);
+  }
+}
+
 // Re-export everything needed on window via main.js Object.assign(window, UI)
-export { setQuizLevel, nextQuizQuestion, showFinalScore, restartQuiz, toggleQuizTimer, setLayer };
+export { setQuizLevel, nextQuizQuestion, showFinalScore, restartQuiz, toggleQuizTimer };
+export { _setLayerWrapped as setLayer };
