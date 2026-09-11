@@ -348,9 +348,15 @@ window.addEventListener('muscles-load-failed', (e) => {
 
 loadSkeletonModel()
   .then(applyStartupState)
-  .then(() => tryLoadMuscleModel())
+  .then(() => {
+    // Load all supplementary systems in parallel after skeleton is ready
+    tryLoadMuscleModel();
+    tryLoadNerveModel();
+    tryLoadCardioModel();
+  })
   .catch(err => console.warn('OsteoVis init error:', err));
 
 UI.buildBoneList();
 window.dispatchEvent(new Event('resize'));
 animate();
+

@@ -1724,5 +1724,102 @@ export const DICT = {
   "c_jugular_vein": { tg: "Вариди яғмо", ru: "Яремная вена", en: "Jugular Vein" },
   "cdesc_jugular": { tg: "Вариди асосии гардан.", ru: "Главная вена шеи.", en: "Major vein of the neck." },
   "cfunc_jugular": { tg: "Баргардонидани хун аз майна.", ru: "Отток крови от головного мозга.", en: "Drains blood from the brain." },
-  "cclin_jugular": { tg: "Тромбоз.", ru: "Тромбоз яремной вены.", en: "Jugular vein thrombosis." }
+  "cclin_jugular": { tg: "Тромбоз.", ru: "Тромбоз яремной вены.", en: "Jugular vein thrombosis." },
+
+  // New nerve structures
+  "n_brain": { tg: "Майна", ru: "Головной мозг", en: "Brain" },
+  "desc_brain": { tg: "Узви марказии системаи асаб.", ru: "Центральный орган нервной системы.", en: "The central organ of the nervous system." },
+  "func_brain": { tg: "Коркарди маълумот, идоракунии бадан, тафаккур.", ru: "Обработка информации, управление телом, мышление.", en: "Processes information, controls the body, cognition." },
+  "clin_brain": { tg: "Инсулт, варами майна, эпилепсия.", ru: "Инсульт, опухоль мозга, эпилепсия.", en: "Stroke, brain tumor, epilepsy." },
+
+  "n_cerebellum": { tg: "Мағзи хурд (Cerebellum)", ru: "Мозжечок", en: "Cerebellum" },
+  "desc_cerebellum": { tg: "Қисми поёнии майна, масъули ҳамоҳангии ҳаракат.", ru: "Нижняя часть мозга, отвечает за координацию движений.", en: "Lower part of the brain responsible for movement coordination." },
+  "func_cerebellum": { tg: "Мувозинат, ҳамоҳангии ҳаракатҳо.", ru: "Равновесие и координация движений.", en: "Balance and motor coordination." },
+  "clin_cerebellum": { tg: "Атаксия, дистония.", ru: "Атаксия, дистония.", en: "Ataxia, dystonia." },
+
+  "n_brainstem": { tg: "Танаи майна", ru: "Ствол мозга", en: "Brainstem" },
+  "desc_brainstem": { tg: "Пайвасткунандаи майна ва ҳароммағз.", ru: "Соединяет головной мозг со спинным.", en: "Connects the brain to the spinal cord." },
+  "func_brainstem": { tg: "Идоракунии нафас, зарбаи дил, ҳушёрӣ.", ru: "Контроль дыхания, сердечного ритма, сознания.", en: "Controls breathing, heart rate, consciousness." },
+  "clin_brainstem": { tg: "Маргии майна, синдромҳои сирати майна.", ru: "Смерть мозга, синдромы ствола мозга.", en: "Brain death, brainstem syndromes." },
+
+  "n_cerebral_hemisphere": { tg: "Нимкураи майна", ru: "Полушарие головного мозга", en: "Cerebral Hemisphere" },
+  "desc_cerebral_hemisphere": { tg: "Ду нимкурае, ки қисми асосии майнаро ташкил медиҳанд.", ru: "Два полушария, составляющие основную часть головного мозга.", en: "Two hemispheres forming the main part of the brain." },
+  "func_cerebral_hemisphere": { tg: "Тафаккур, хотира, забон, эҳсосот.", ru: "Мышление, память, речь, эмоции.", en: "Thought, memory, language, emotion." },
+  "clin_cerebral_hemisphere": { tg: "Инсулт, ишемия.", ru: "Инсульт, ишемия.", en: "Stroke, ischemia." },
+
+  "n_basal_forebrain": { tg: "Пешмайнаи поёнӣ", ru: "Базальный передний мозг", en: "Basal Forebrain" },
+  "desc_basal_forebrain": { tg: "Минтақае дар поёни пешмайна.", ru: "Область в основании переднего мозга.", en: "Region at the base of the forebrain." },
+  "func_basal_forebrain": { tg: "Ҳушёрӣ, хотира, омӯзиш.", ru: "Внимание, память, обучение.", en: "Attention, memory, and learning." },
+  "clin_basal_forebrain": { tg: "Беморӣи Алтсгеймер.", ru: "Болезнь Альцгеймера.", en: "Alzheimer's disease." },
+
+  "n_spinal_cord": { tg: "Ҳароммағз", ru: "Спинной мозг", en: "Spinal Cord" },
+  "n_spinal_dura": { tg: "Пӯсти ҳароммағз", ru: "Твёрдая оболочка спинного мозга", en: "Spinal Dura Mater" },
+  "desc_spinal_dura": { tg: "Пардаи берунии муҳофизати ҳароммағз.", ru: "Наружная защитная оболочка спинного мозга.", en: "Outer protective membrane of the spinal cord." },
+  "func_spinal_dura": { tg: "Ҳифз ва муҳит барои ҳароммағз.", ru: "Защита и среда для спинного мозга.", en: "Protection and environment for the spinal cord." },
+  "clin_spinal_dura": { tg: "Дуральная эктазия.", ru: "Дуральная эктазия.", en: "Dural ectasia." },
+
+  "n_spinal_nerves": { tg: "Асабҳои ҳароммағзӣ", ru: "Спинномозговые нервы", en: "Spinal Nerves" },
+  "desc_spinal_nerves": { tg: "31 ҷуфт асаб, ки аз ҳароммағз мебароянд.", ru: "31 пара нервов, выходящих из спинного мозга.", en: "31 pairs of nerves emerging from the spinal cord." },
+  "func_spinal_nerves": { tg: "Интиқоли импулсҳо аз ва ба ҳароммағз.", ru: "Передача импульсов к спинному мозгу и от него.", en: "Transmit impulses to and from the spinal cord." },
+  "clin_spinal_nerves": { tg: "Невропатия, сиринголиелия.", ru: "Невропатия, сирингомиелия.", en: "Neuropathy, syringomyelia." },
+
+  "n_olfactory": { tg: "Асаби бӯйӣ (I)", ru: "Обонятельный нерв (I)", en: "Olfactory Nerve (I)" },
+  "desc_olfactory": { tg: "Аввалин ҷуфти асабҳои косахонаи сар.", ru: "Первая пара черепных нервов.", en: "First cranial nerve pair." },
+  "func_olfactory": { tg: "Интиқоли эҳсоси бӯй.", ru: "Передача обонятельных ощущений.", en: "Transmits sense of smell." },
+  "clin_olfactory": { tg: "Аносмия (аз даст додани бӯй).", ru: "Аносмия (потеря обоняния).", en: "Anosmia (loss of smell)." },
+
+  "n_optic": { tg: "Асаби биноӣ (II)", ru: "Зрительный нерв (II)", en: "Optic Nerve (II)" },
+  "n_oculomotor": { tg: "Асаби ҳаракатии чашм (III)", ru: "Глазодвигательный нерв (III)", en: "Oculomotor Nerve (III)" },
+  "desc_oculomotor": { tg: "Сеюми ҷуфти асабҳои косахона.", ru: "Третья пара черепных нервов.", en: "Third cranial nerve." },
+  "func_oculomotor": { tg: "Идоракунии ҳаракати чашм.", ru: "Управление движением глаза.", en: "Controls eye movement." },
+  "clin_oculomotor": { tg: "Фалаҷи чашм.", ru: "Паралич глазного яблока.", en: "Ophthalmoplegia." },
+
+  "n_trigeminal": { tg: "Асаби сесарха (V)", ru: "Тройничный нерв (V)", en: "Trigeminal Nerve (V)" },
+  "desc_trigeminal": { tg: "Бузургтарин асаби косахона.", ru: "Самый крупный черепной нерв.", en: "Largest cranial nerve." },
+  "func_trigeminal": { tg: "Ҳиссиёт дар рӯй ва даҳон.", ru: "Чувствительность лица и рта.", en: "Facial and oral sensation." },
+  "clin_trigeminal": { tg: "Невралгияи сесарха.", ru: "Невралгия тройничного нерва.", en: "Trigeminal neuralgia." },
+
+  "n_facial": { tg: "Асаби рӯй (VII)", ru: "Лицевой нерв (VII)", en: "Facial Nerve (VII)" },
+  "desc_facial": { tg: "Ҳафтуми ҷуфти асабҳои косахона.", ru: "Седьмая пара черепных нервов.", en: "Seventh cranial nerve pair." },
+  "func_facial": { tg: "Идоракунии мушакҳои рӯй.", ru: "Управление мышцами лица.", en: "Controls facial muscles." },
+  "clin_facial": { tg: "Парез Белл.", ru: "Паралич Белла.", en: "Bell's palsy." },
+
+  "n_cranial_nerves_group": { tg: "Асабҳои косахонаи сар", ru: "Черепные нервы", en: "Cranial Nerves" },
+  "desc_cranial_nerves_group": { tg: "12 ҷуфт асаб, ки мустақиман аз майна мебароянд.", ru: "12 пар нервов, выходящих непосредственно из головного мозга.", en: "12 pairs of nerves emerging directly from the brain." },
+  "func_cranial_nerves_group": { tg: "Таъмини узвҳои ҳис ва ҳаракат дар сар ва гардан.", ru: "Иннервация органов чувств и движения в голове и шее.", en: "Innervation of sensory and motor structures in the head and neck." },
+  "clin_cranial_nerves_group": { tg: "Невропатияҳои косахона.", ru: "Черепные невропатии.", en: "Cranial neuropathies." },
+
+  // New cardio structures
+  "c_right_ventricle": { tg: "Ковоки рости дил", ru: "Правый желудочек", en: "Right Ventricle" },
+  "cdesc_right_ventricle": { tg: "Ковоки рости дил, хуни беоксигенро ба шуш мефиристад.", ru: "Правая камера сердца, перекачивает кровь в лёгкие.", en: "Right chamber pumping blood to the lungs." },
+  "cfunc_right_ventricle": { tg: "Фиристодани хун ба шараёни шуш.", ru: "Перекачка крови к лёгочной артерии.", en: "Pumps blood into the pulmonary artery." },
+  "cclin_right_ventricle": { tg: "Норасоии ковоки рост.", ru: "Правожелудочковая недостаточность.", en: "Right ventricular failure." },
+
+  "c_left_ventricle": { tg: "Ковоки чапи дил", ru: "Левый желудочек", en: "Left Ventricle" },
+  "cdesc_left_ventricle": { tg: "Ковоки чапи дил, оксигенпарвардаро ба бадан мефиристад.", ru: "Левая камера сердца — насос системного кровообращения.", en: "Main pumping chamber of the heart." },
+  "cfunc_left_ventricle": { tg: "Пумпкунии хун ба тамоми бадан.", ru: "Перекачивание крови по всему организму.", en: "Pumps oxygenated blood to the whole body." },
+  "cclin_left_ventricle": { tg: "Норасоии дил, инфаркт.", ru: "Сердечная недостаточность, инфаркт.", en: "Heart failure, myocardial infarction." },
+
+  "c_right_atrium": { tg: "Даҳлези рости дил", ru: "Правое предсердие", en: "Right Atrium" },
+  "cdesc_right_atrium": { tg: "Қабулкунандаи хуни беоксиген аз бадан.", ru: "Принимает деоксигенированную кровь от тела.", en: "Receives deoxygenated blood from the body." },
+  "cfunc_right_atrium": { tg: "Қабули хун аз варидҳои ковок.", ru: "Приём крови из полых вен.", en: "Receives blood from the vena cava." },
+  "cclin_right_atrium": { tg: "Фибрилятсияи даҳлезҳо.", ru: "Фибрилляция предсердий.", en: "Atrial fibrillation." },
+
+  "c_left_atrium": { tg: "Даҳлези чапи дил", ru: "Левое предсердие", en: "Left Atrium" },
+  "cdesc_left_atrium": { tg: "Қабулкунандаи хуни оксигендор аз шуш.", ru: "Принимает оксигенированную кровь из лёгких.", en: "Receives oxygenated blood from the lungs." },
+  "cfunc_left_atrium": { tg: "Интиқоли хун ба ковоки чап.", ru: "Передача крови в левый желудочек.", en: "Passes blood to the left ventricle." },
+  "cclin_left_atrium": { tg: "Фибрилятсия, тромбоз.", ru: "Фибрилляция, тромбоз.", en: "Atrial fibrillation, thrombosis." },
+
+  "c_systemic_arteries": { tg: "Шараёнҳои системавӣ", ru: "Системные артерии", en: "Systemic Arteries" },
+  "cdesc_systemic_arteries": { tg: "Шабакаи шараёнҳо дар тамоми бадан.", ru: "Сеть артерий по всему телу.", en: "Network of arteries throughout the body." },
+  "cfunc_systemic_arteries": { tg: "Таъмини оксиген ба ҳамаи узвҳо.", ru: "Доставка кислорода ко всем органам.", en: "Delivering oxygen to all organs." },
+  "cclin_systemic_arteries": { tg: "Атеросклероз, гипертония.", ru: "Атеросклероз, гипертония.", en: "Atherosclerosis, hypertension." },
+
+  "c_cerebral_arteries": { tg: "Шараёнҳои майна", ru: "Церебральные артерии", en: "Cerebral Arteries" },
+  "cdesc_cerebral_arteries": { tg: "Шараёнҳое, ки майнаро бо хун таъмин мекунанд.", ru: "Артерии, снабжающие мозг кровью.", en: "Arteries supplying blood to the brain." },
+  "cfunc_cerebral_arteries": { tg: "Таъмини майна бо оксиген.", ru: "Кровоснабжение головного мозга.", en: "Blood supply to the brain." },
+  "cclin_cerebral_arteries": { tg: "Инсульт, аневризма.", ru: "Инсульт, аневризма.", en: "Stroke, aneurysm." },
+
+  "c_lung_veins": { tg: "Варидҳои шуш", ru: "Лёгочные вены", en: "Pulmonary Veins (Lung)" }
 };
+

@@ -1,8 +1,65 @@
+// cardio_loader.js — Loads human-cardiovascular-system.glb and maps meshes to CARDIO_DB
+// Model: Human Atlas / BodyParts3D (CC BY-SA 2.1 Japan)
+
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { state } from './state.js';
 import { scene } from './scene.js';
 import { CARDIO_DB } from './cardio_data.js';
+
+// Strip BodyParts3D suffixes: ".j.001", ".r.001", ".l.001", ".001", etc.
+function normalizeName(name) {
+  return name
+    .toLowerCase()
+    .replace(/\.(j|r|l|g)\.\d+$/i, '')
+    .replace(/\.\d+$/i, '')
+    .trim();
+}
+
+// Find which CARDIO_DB entry best matches a mesh name
+function matchCardioId(meshName) {
+  const norm = normalizeName(meshName);
+  for (const entry of CARDIO_DB) {
+    for (const kw of entry.meshKeywords) {
+      if (norm.includes(kw.toLowerCase())) {
+        return entry.id;
+      }
+    }
+  }
+  return null;
+}
+
+// Determine mesh color from name — arteries red, veins blue, heart dark red
+function buildCardioMaterial(meshName) {
+  const norm = normalizeName(meshName);
+  let color = 0xcc2222; // default: artery red
+
+  if (
+    norm.includes('vein') || norm.includes('venous') || norm.includes('sinus') ||
+    norm.includes('brachiocephalic vein') || norm.includes('jugular') ||
+    norm.includes('vena')
+  ) {
+    color = 0x1a3fa6; // dark blue for veins
+  } else if (
+    norm.includes('heart') || norm.includes('ventricle') || norm.includes('atrium') ||
+    norm.includes('valvular') || norm.includes('papillary') || norm.includes('atrioventricular')
+  ) {
+    color = 0xc0392b; // deep red for heart chambers
+  } else if (norm.includes('aorta') || norm.includes('aortic')) {
+    color = 0xe74c3c; // bright red for aorta
+  }
+
+  return new THREE.MeshPhysicalMaterial({
+    color,
+    metalness: 0.08,
+    roughness: 0.35,
+    clearcoat: 0.6,
+    clearcoatRoughness: 0.2,
+    transparent: true,
+    opacity: state.cardioOpacity || 1.0,
+    side: THREE.DoubleSide,
+  });
+}
 
 export function tryLoadCardioModel() {
   if (state.cardioModelLoaded || state.cardioModelLoading) return;
@@ -17,84 +74,52 @@ export function tryLoadCardioModel() {
     (gltf) => {
       state.cardioModelLoaded = true;
       state.cardioModelLoading = false;
-      const model = gltf.scene;
-      
+
       const cardioGroup = new THREE.Group();
-      cardioGroup.name = "CardioSystem";
-      
-      model.traverse((child) => {
-        if (child.isMesh) {
-          const name = child.name.toLowerCase();
-          
-          let cardioId = null;
-          // Exact match
-          if (CARDIO_DB.find(c => c.id === name)) cardioId = name;
-          // Or fuzzy match from DB
-          else if (CARDIO_DB.find(c => name.includes(c.id.replace('cardio_', '')))) {
-            cardioId = CARDIO_DB.find(c => name.includes(c.id.replace('cardio_', ''))).id;
-          } else {
-            cardioId = 'unmapped_' + name;
-          }
+      cardioGroup.name = 'CardiovascularSystem';
 
-          child.userData.cardioId = cardioId;
-          child.userData.originalColor = child.material.color ? child.material.color.clone() : new THREE.Color(0xaa0000);
+      gltf.scene.traverse((child) => {
+        if (!child.isMesh) return;
 
-          // Standardize material if needed
-          if (child.material) {
-            let colorHex = 0xaa0000; // Red for arteries/heart
-            if (name.includes('vein') || name.includes('vena') || name.includes('jugular')) colorHex = 0x0000aa; // Blue for veins
+        const cardioId = matchCardioId(child.name);
+        child.userData.cardioId = cardioId || ('unmapped_' + child.name);
+        child.material = buildCardioMaterial(child.name);
 
-            const newMat = new THREE.MeshPhysicalMaterial({
-              color: colorHex,
-              metalness: 0.1,
-              roughness: 0.3,
-              clearcoat: 0.5,
-              clearcoatRoughness: 0.2,
-              transparent: true,
-              opacity: state.cardioOpacity || 1.0,
-              side: THREE.DoubleSide
-            });
-            child.material = newMat;
-          }
+        state.cardioAllMeshes.push(child);
 
-          state.cardioAllMeshes.push(child);
-          if (cardioId && !cardioId.startsWith('unmapped_')) {
-            state.cardioMeshes[cardioId] = child;
-            if (!state.cardioMeshGroups[cardioId]) state.cardioMeshGroups[cardioId] = [];
-            state.cardioMeshGroups[cardioId].push(child);
-          }
+        if (cardioId) {
+          if (!state.cardioMeshes[cardioId]) state.cardioMeshes[cardioId] = child;
+          if (!state.cardioMeshGroups[cardioId]) state.cardioMeshGroups[cardioId] = [];
+          state.cardioMeshGroups[cardioId].push(child);
         }
       });
 
-      cardioGroup.add(model);
+      cardioGroup.add(gltf.scene);
       state.cardioGroup = cardioGroup;
-      
+
       scene.add(cardioGroup);
       cardioGroup.visible = state.cardioVisible;
-      
-      // Ensure UI catches up
-      if (state.activePanel === 'cardio') {
-        // UI is available via window since main.js spreads it
-        if (typeof window.switchPanel === 'function') window.switchPanel('cardio');
+
+      if (ms) ms.style.display = 'none';
+
+      // If user is already on the cardio panel, refresh the list
+      if (state.activePanel === 'cardio' && typeof window.buildCardioList === 'function') {
+        window.buildCardioList('all');
+        const cardioList = document.getElementById('cardio-list');
+        if (cardioList) cardioList.style.display = '';
       }
+
+      console.log(`[OsteoVis] Cardiovascular system loaded: ${state.cardioAllMeshes.length} meshes, ${Object.keys(state.cardioMeshGroups).length} mapped structures`);
     },
-    (xhr) => {
-      // Progress
-    },
+    undefined,
     (error) => {
       state.cardioModelLoading = false;
-      state.cardioModelLoaded = false;
-      const ms = document.getElementById('cardio-missing-state');
+      state.cardioModelMissing = true;
+      console.warn('[OsteoVis] Cardiovascular model not found:', error.message);
       if (ms) {
         ms.style.display = 'flex';
         const errDiv = ms.querySelector('.mmissing-error');
-        if (errDiv) {
-          errDiv.textContent = error.message || 'Failed to load model';
-          errDiv.style.display = 'block';
-        }
-      }
-      if (state.activePanel === 'cardio' && typeof window.switchPanel === 'function') {
-        window.switchPanel('cardio');
+        if (errDiv) { errDiv.textContent = error.message; errDiv.style.display = 'block'; }
       }
     }
   );

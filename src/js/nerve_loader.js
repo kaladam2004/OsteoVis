@@ -1,95 +1,117 @@
+// nerve_loader.js — Loads human-nervous-system.glb and maps meshes to NERVE_DB
+// Model: Human Atlas / BodyParts3D (CC BY-SA 2.1 Japan)
+
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { scene } from './scene.js';
 import { state } from './state.js';
+import { scene } from './scene.js';
 import { NERVE_DB } from './nerve_data.js';
-import { clipConfig } from './crosssection.js';
 
-const NERVE_GLB_PATH = '/models/human-nervous-system.glb';
-
-function createNerveMat() {
-  return new THREE.MeshPhysicalMaterial({
-    color: 0xd4a017,       // golden-yellow nerve tissue
-    roughness: 0.5,
-    metalness: 0.0,
-    clearcoat: 0.6,
-    clearcoatRoughness: 0.2,
-    transparent: true,
-    opacity: state.nerveOpacity,
-    depthWrite: true,
-    side: THREE.DoubleSide,
-  });
+// Strip BodyParts3D suffixes: ".j.001", ".r.001", ".l.001", ".001", etc.
+function normalizeName(name) {
+  return name
+    .toLowerCase()
+    .replace(/\.(j|r|l|g)\.\d+$/i, '')
+    .replace(/\.\d+$/i, '')
+    .trim();
 }
 
-function mapNerveName(meshName) {
-  const name = meshName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  for (const n of NERVE_DB) {
-    const id    = n.id.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const nName = n.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const nLat  = n.latinName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (name === id || name.includes(id) || id.includes(name)) return n.id;
-    if (name.includes(nName) || nName.includes(name)) return n.id;
-    if (name.includes(nLat) || nLat.includes(name)) return n.id;
+// Find which NERVE_DB entry best matches a mesh name
+function matchNerveId(meshName) {
+  const norm = normalizeName(meshName);
+  for (const entry of NERVE_DB) {
+    for (const kw of entry.meshKeywords) {
+      if (norm.includes(kw.toLowerCase())) {
+        return entry.id;
+      }
+    }
   }
   return null;
+}
+
+// Materials for nerve visualization
+function buildNerveMaterial(meshName) {
+  const norm = normalizeName(meshName);
+  let color = 0xd4a017; // gold for nerves
+
+  if (norm.includes('brain') || norm.includes('cerebr') || norm.includes('cerebel') || norm.includes('brainstem')) {
+    color = 0xf3c99e; // pinkish-beige for brain tissue
+  } else if (norm.includes('spinal cord') || norm.includes('spinal dura') || norm.includes('meninges')) {
+    color = 0xf0e0b0; // pale yellow for cord
+  } else if (norm.includes('nerve') || norm.includes('olfactory') || norm.includes('optic') || norm.includes('vagus')) {
+    color = 0xffe066; // bright yellow for nerves
+  }
+
+  return new THREE.MeshPhysicalMaterial({
+    color,
+    metalness: 0.05,
+    roughness: 0.5,
+    clearcoat: 0.3,
+    transparent: true,
+    opacity: state.nerveOpacity || 0.88,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
 }
 
 export function tryLoadNerveModel() {
   if (state.nerveModelLoaded || state.nerveModelLoading) return;
   state.nerveModelLoading = true;
 
+  // Hide missing state if shown
+  const ms = document.getElementById('nerve-missing-state');
+  if (ms) ms.style.display = 'none';
+
   const loader = new GLTFLoader();
   loader.load(
-    NERVE_GLB_PATH,
+    '/models/human-nervous-system.glb',
     (gltf) => {
-      const group = new THREE.Group();
-      group.name  = 'nerveGroup';
+      state.nerveModelLoaded = true;
+      state.nerveModelLoading = false;
 
-      gltf.scene.traverse(child => {
+      const nerveGroup = new THREE.Group();
+      nerveGroup.name = 'NervousSystem';
+
+      gltf.scene.traverse((child) => {
         if (!child.isMesh) return;
-        const nerveId = mapNerveName(child.name);
-        const mat = createNerveMat();
 
-        if (clipConfig.enabled) {
-          mat.clippingPlanes = [clipConfig.plane];
-          mat.clipShadows    = true;
-        }
-
-        child.material = mat;
+        const nerveId = matchNerveId(child.name);
         child.userData.nerveId = nerveId || ('unmapped_' + child.name);
-        child.castShadow    = true;
-        child.receiveShadow = true;
+        child.material = buildNerveMaterial(child.name);
 
         state.nerveAllMeshes.push(child);
+
         if (nerveId) {
-          state.nerveMeshes[nerveId]   = child;
-          state.nerveMeshGroups[nerveId] = (state.nerveMeshGroups[nerveId] || []);
+          if (!state.nerveMeshes[nerveId]) state.nerveMeshes[nerveId] = child;
+          if (!state.nerveMeshGroups[nerveId]) state.nerveMeshGroups[nerveId] = [];
           state.nerveMeshGroups[nerveId].push(child);
         }
-        group.add(child.clone ? child : child);
       });
 
-      gltf.scene.traverse(child => {
-        if (!child.isMesh) return;
-        group.add(child);
-      });
+      nerveGroup.add(gltf.scene);
+      state.nerveGroup = nerveGroup;
 
-      state.nerveGroup = group;
-      scene.add(group);
-      group.visible = state.nerveVisible;
+      scene.add(nerveGroup);
+      nerveGroup.visible = state.nerveVisible;
 
-      state.nerveModelLoaded  = true;
-      state.nerveModelLoading = false;
+      // Remove missing-state overlay
+      if (ms) ms.style.display = 'none';
 
-      document.dispatchEvent(new CustomEvent('nerve-model-loaded'));
-      console.log('[OsteoVis] Nervous system model loaded ✓');
+      // If user is already on the nerves panel, refresh the list
+      if (state.activePanel === 'nerves' && typeof window.buildNerveList === 'function') {
+        window.buildNerveList('all');
+        const nerveList = document.getElementById('nerve-list');
+        if (nerveList) nerveList.style.display = '';
+      }
+
+      console.log(`[OsteoVis] Nervous system loaded: ${state.nerveAllMeshes.length} meshes, ${Object.keys(state.nerveMeshGroups).length} mapped structures`);
     },
     undefined,
-    (err) => {
-      console.warn('[OsteoVis] Nervous system GLB not found:', NERVE_GLB_PATH);
+    (error) => {
       state.nerveModelLoading = false;
       state.nerveModelMissing = true;
-      document.dispatchEvent(new CustomEvent('nerve-model-missing'));
+      console.warn('[OsteoVis] Nervous system model not found:', error.message);
+      if (ms) ms.style.display = 'flex';
     }
   );
 }
