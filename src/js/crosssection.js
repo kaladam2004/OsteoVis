@@ -17,7 +17,7 @@ function _getActivePlanes() {
 
 function _apply() {
   const planes = _getActivePlanes();
-  [...state.boneAllMeshes, ...state.muscleAllMeshes].forEach(m => {
+  [...state.boneAllMeshes, ...state.muscleAllMeshes, ...state.nerveAllMeshes, ...state.cardioAllMeshes].forEach(m => {
     m.material.clippingPlanes = planes;
     m.material.needsUpdate = true;
   });

@@ -12,9 +12,13 @@ import * as UI from './ui.js';
 import { checkQuizAnswer } from './quiz.js';
 import { getURLParams, loadPrefs } from './persistence.js';
 import { addMeasurePoint } from './measure.js';
-import { initAnnotations, restoreAnnotations, updateAnnotationLabels } from './annotations.js';
 import { toggleClipPlane, updateClipValue, resetSection } from './crosssection.js';
 import { tryLoadMuscleModel } from './muscle_loader.js';
+import { tryLoadNerveModel } from './nerve_loader.js';
+import { tryLoadCardioModel } from './cardio_loader.js';
+import { t, tObj } from './i18n.js';
+import { NERVE_DB } from './nerve_data.js';
+import { CARDIO_DB } from './cardio_data.js';
 
 const controls = new CameraController(camera, canvas);
 window.appControls = controls;
@@ -31,6 +35,12 @@ function getVisibleAnatomyMeshes() {
   const meshes = [...state.boneAllMeshes];
   if (state.muscleModelLoaded && state.muscleGroup?.visible) {
     meshes.push(...state.muscleAllMeshes);
+  }
+  if (state.nerveModelLoaded && state.nerveGroup?.visible) {
+    meshes.push(...state.nerveAllMeshes);
+  }
+  if (state.cardioModelLoaded && state.cardioGroup?.visible) {
+    meshes.push(...state.cardioAllMeshes);
   }
   return meshes;
 }
@@ -70,10 +80,10 @@ canvas.addEventListener('mousemove', e => {
       });
       const muscleData = MUSCLE_DB.find(m => m.id === mId);
       if (muscleData) {
-        document.getElementById('tooltip-name').textContent  = muscleData.name;
+        document.getElementById('tooltip-name').textContent  = tObj(muscleData.name) || muscleData.name;
         document.getElementById('tooltip-latin').textContent = muscleData.latinName;
-        document.getElementById('tooltip-cat').textContent   = muscleData.category;
-        document.getElementById('tooltip-desc').textContent  = muscleData.function || '';
+        document.getElementById('tooltip-cat').textContent   = tObj(muscleData.category) || muscleData.category;
+        document.getElementById('tooltip-desc').textContent  = tObj(muscleData.function) || muscleData.function || '';
         const tt = document.getElementById('tooltip');
         tt.style.display = 'block';
         const tx = (e.clientX + 270 > window.innerWidth) ? e.clientX - 260 : e.clientX + 15;
@@ -107,10 +117,10 @@ canvas.addEventListener('mousemove', e => {
 
     const data = ANATOMY_DB.find(b => b.id === hitId);
     if (data) {
-      document.getElementById('tooltip-name').textContent = data.name;
+      document.getElementById('tooltip-name').textContent = tObj(data.name) || data.name;
       document.getElementById('tooltip-latin').textContent = data.latinName;
-      document.getElementById('tooltip-cat').textContent = data.category;
-      document.getElementById('tooltip-desc').textContent = data.description;
+      document.getElementById('tooltip-cat').textContent = tObj(data.category) || data.category;
+      document.getElementById('tooltip-desc').textContent = tObj(data.description) || data.description;
       const tt = document.getElementById('tooltip');
       tt.style.display = 'block';
       const tx = (e.clientX + 270 > window.innerWidth) ? e.clientX - 260 : e.clientX + 15;
@@ -156,7 +166,31 @@ canvas.addEventListener('click', e => {
     return;
   }
 
-  // ── Muscle click (muscles panel + model loaded) ────────────────────────────
+  // ── Nerve click (nerves panel + model loaded) ─────────────────────────────────────────
+  if (state.activePanel === 'nerves' && state.nerveModelLoaded && state.nerveAllMeshes.length) {
+    const nHits = raycaster.intersectObjects(state.nerveAllMeshes, false);
+    if (nHits.length) {
+      const nerveId = nHits[0].object.userData.nerveId;
+      if (nerveId && !nerveId.startsWith('unmapped_')) UI.selectNerve(nerveId);
+    } else {
+      UI.deselectNerve();
+    }
+    return;
+  }
+
+  // ── Cardio click (cardio panel + model loaded) ────────────────────────────────
+  if (state.activePanel === 'cardio' && state.cardioModelLoaded && state.cardioAllMeshes.length) {
+    const cHits = raycaster.intersectObjects(state.cardioAllMeshes, false);
+    if (cHits.length) {
+      const cardioId = cHits[0].object.userData.cardioId;
+      if (cardioId && !cardioId.startsWith('unmapped_')) UI.selectCardio(cardioId);
+    } else {
+      UI.deselectCardio();
+    }
+    return;
+  }
+
+  // ── Muscle click (muscles panel + model loaded) ──────────────────────────────────────
   if (state.activePanel === 'muscles' && state.muscleModelLoaded && state.muscleAllMeshes.length) {
     const mHits = raycaster.intersectObjects(state.muscleAllMeshes, false);
     if (mHits.length) {

@@ -5,11 +5,15 @@ import { state } from './state.js';
 import { ANATOMY_DB, BONE_CLINICAL_DATA } from './data.js';
 import { MUSCLE_DB, MUSCLE_CATEGORIES } from './muscles_data.js';
 import { camera, renderer, composer } from './scene.js';
-import { setQuizLevel, nextQuizQuestion, stopQuizTimer, showFinalScore, restartQuiz, toggleQuizTimer } from './quiz.js';
+import { setQuizLevel, nextQuizQuestion, stopQuizTimer, showFinalScore, restartQuiz, toggleQuizTimer, setQuizMode } from './quiz.js';
 import { setLayer as _setLayerBase } from './layers.js';
 import { savePrefs, updateURL } from './persistence.js';
 import { clearMeasure as _clearMeasure } from './measure.js';
 import { createAnnotation, deleteAnnotation as _deleteAnnotation } from './annotations.js';
+import { t, tObj } from './i18n.js';
+import { NERVE_DB, NERVE_CATEGORIES } from './nerve_data.js';
+import { tryLoadNerveModel } from './nerve_loader.js';
+import { CARDIO_DB, CARDIO_CATEGORIES } from './cardio_data.js';
 // No import from main.js — circular import removed; controls accessed via window.appControls
 
 // ─── Sidebar helpers ──────────────────────────────────────────────────────────
@@ -202,14 +206,14 @@ function _updatePresentationOverlay() {
     const id   = state.selectedBone.userData.boneId;
     const data = ANATOMY_DB.find(b => b.id === id);
     if (data) {
-      name.textContent  = data.name;
+      name.textContent  = tObj(data.name) || data.name;
       latin.textContent = data.latinName;
-      desc.textContent  = data.description;
+      desc.textContent  = tObj(data.description) || data.description;
       return;
     }
   }
   name.textContent  = 'OsteoVis';
-  latin.textContent = 'Click any bone to begin';
+  latin.textContent = t('pres_hint');
   desc.textContent  = '';
 }
 
@@ -235,9 +239,11 @@ export function togglePresentation() {
 
 export function updateStats() {
   const mapped  = Object.keys(state.boneMeshes).filter(id => !id.startsWith('unmapped_')).length;
-  const selName = state.selectedBone
-    ? (ANATOMY_DB.find(b => b.id === state.selectedBone.userData.boneId)?.name || '—')
-    : '—';
+  let selName = '—';
+  if (state.selectedBone) {
+    const b = ANATOMY_DB.find(b => b.id === state.selectedBone.userData.boneId);
+    if (b) selName = tObj(b.name) || b.name;
+  }
   const quizS   = parseInt(document.getElementById('quiz-score')?.textContent || '0');
   const quizT   = parseInt(document.getElementById('quiz-total')?.textContent || '0');
   const quizPct = quizT > 0 ? `${Math.round((quizS / quizT) * 100)}%` : '—';
@@ -417,46 +423,46 @@ export function toggleExplode() {
 
 function buildDetailHTML(data) {
   const extra   = BONE_CLINICAL_DATA[data.id] || {};
-  const NA      = '<span class="data-na">Not added yet</span>';
+  const NA      = `<span class="data-na">${t('data_na') || 'Not added yet'}</span>`;
   const artList = extra.articulations
-    ? `<ul>${extra.articulations.map(a => `<li>${a}</li>`).join('')}</ul>` : NA;
+    ? `<ul>${extra.articulations.map(a => `<li>${tObj(a)}</li>`).join('')}</ul>` : NA;
   const muscList = extra.muscleAttachments
-    ? `<ul>${extra.muscleAttachments.map(m => `<li>${m}</li>`).join('')}</ul>` : NA;
+    ? `<ul>${extra.muscleAttachments.map(m => `<li>${tObj(m)}</li>`).join('')}</ul>` : NA;
   return `
     <div class="detail-card">
-      <h3>${data.name}</h3>
+      <h3>${tObj(data.name) || data.name}</h3>
       <div class="latin">${data.latinName}</div>
     </div>
     <div class="detail-section">
-      <div class="detail-label">📖 Description</div>
-      <div class="detail-text">${data.description}</div>
+      <div class="detail-label" data-i18n="lbl_desc">${t('lbl_desc')}</div>
+      <div class="detail-text">${tObj(data.description) || data.description}</div>
     </div>
     <div class="detail-section">
-      <div class="detail-label">⚡ Function</div>
-      <div class="detail-text">${data.fn}</div>
+      <div class="detail-label" data-i18n="lbl_fn">${t('lbl_fn')}</div>
+      <div class="detail-text">${tObj(data.fn) || data.fn}</div>
     </div>
     <div class="detail-section">
-      <div class="detail-label">🔗 Articulations</div>
+      <div class="detail-label" data-i18n="lbl_art">${t('lbl_art')}</div>
       <div class="detail-text">${artList}</div>
     </div>
     <div class="detail-section">
-      <div class="detail-label">💪 Muscle Attachments</div>
+      <div class="detail-label" data-i18n="lbl_muscles">${t('lbl_muscles')}</div>
       <div class="detail-text">${muscList}</div>
     </div>
     <div class="detail-section">
-      <div class="detail-label">🏥 Clinical Note</div>
-      <div class="detail-text">${extra.clinicalNote || NA}</div>
+      <div class="detail-label" data-i18n="lbl_clinic">${t('lbl_clinic')}</div>
+      <div class="detail-text">${tObj(extra.clinicalNote) || NA}</div>
     </div>
     <div class="detail-section">
-      <div class="detail-label">🦴 Ossification</div>
-      <div class="detail-text">${extra.ossification || NA}</div>
+      <div class="detail-label" data-i18n="lbl_oss">${t('lbl_oss')}</div>
+      <div class="detail-text">${tObj(extra.ossification) || NA}</div>
     </div>
     <div class="detail-section">
-      <div class="detail-label">🏷️ Category</div>
-      <div class="detail-text" style="color:var(--accent2);text-transform:uppercase">${data.category}</div>
+      <div class="detail-label" data-i18n="lbl_cat">${t('lbl_cat')}</div>
+      <div class="detail-text" style="color:var(--accent2);text-transform:uppercase">${tObj(data.category) || data.category}</div>
     </div>
-    <button class="action-btn" id="btn-isolate-detail" onclick="window.toggleIsolation()">🔬 Isolate Bone</button>
-    <button class="action-btn" onclick="window.resetMats()" style="background:rgba(255,255,255,0.05);color:var(--text)">🔄 Show All Bones</button>
+    <button class="action-btn" id="btn-isolate-detail" onclick="window.toggleIsolation()" data-i18n="btn_isolate">${t('btn_isolate')}</button>
+    <button class="action-btn" onclick="window.resetMats()" style="background:rgba(255,255,255,0.05);color:var(--text)" data-i18n="btn_show_all">${t('btn_show_all')}</button>
   `;
 }
 
@@ -575,9 +581,10 @@ export function buildBoneList(filter = 'all') {
     div.dataset.boneId = b.id;
     div.tabIndex = 0;
     div.setAttribute('role', 'button');
-    div.setAttribute('aria-label', `${b.name} — ${b.latinName}`);
+    const bName = tObj(b.name) || b.name;
+    div.setAttribute('aria-label', `${bName} — ${b.latinName}`);
     if (b.id === selectedId) div.classList.add('selected');
-    div.innerHTML = `<span class="bone-dot"></span><div><span>${b.name}</span><span class="bone-latin">${b.latinName}</span></div>`;
+    div.innerHTML = `<span class="bone-dot"></span><div><span>${bName}</span><span class="bone-latin">${b.latinName}</span></div>`;
     div.addEventListener('click', () => { selectBone(b.id); if (window.innerWidth <= 1024) closeAllSidebars(); });
     div.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -603,20 +610,23 @@ export function doSearch(q) {
   const lq = q.toLowerCase();
 
   if (state.activePanel === 'muscles') {
-    const matches = MUSCLE_DB.filter(m =>
-      m.name.toLowerCase().includes(lq) || m.latinName.toLowerCase().includes(lq) ||
-      m.function?.toLowerCase().includes(lq) || m.innervation?.toLowerCase().includes(lq)
-    );
+    const matches = MUSCLE_DB.filter(m => {
+      const mn = tObj(m.name).toLowerCase();
+      const fn = tObj(m.function)?.toLowerCase() || '';
+      const inn = tObj(m.innervation)?.toLowerCase() || '';
+      return mn.includes(lq) || m.latinName.toLowerCase().includes(lq) || fn.includes(lq) || inn.includes(lq);
+    });
     res.innerHTML = matches.map(m =>
-      `<div class="search-result-item" role="button" tabindex="0" onclick="window.selectMuscle('${m.id}');document.getElementById('search-results').style.display='none'">${m.name} <span class="search-result-latin">${m.latinName}</span></div>`
+      `<div class="search-result-item" role="button" tabindex="0" onclick="window.selectMuscle('${m.id}');document.getElementById('search-results').style.display='none'">${tObj(m.name)} <span class="search-result-latin">${m.latinName}</span></div>`
     ).join('');
     res.style.display = matches.length ? 'block' : 'none';
   } else {
-    const matches = ANATOMY_DB.filter(b =>
-      b.name.toLowerCase().includes(lq) || b.latinName.toLowerCase().includes(lq)
-    );
+    const matches = ANATOMY_DB.filter(b => {
+      const bn = tObj(b.name).toLowerCase();
+      return bn.includes(lq) || b.latinName.toLowerCase().includes(lq);
+    });
     res.innerHTML = matches.map(b =>
-      `<div class="search-result-item" role="button" tabindex="0" onclick="window.selectBone('${b.id}');document.getElementById('search-results').style.display='none'">${b.name} <span class="search-result-latin">${b.latinName}</span></div>`
+      `<div class="search-result-item" role="button" tabindex="0" onclick="window.selectBone('${b.id}');document.getElementById('search-results').style.display='none'">${tObj(b.name)} <span class="search-result-latin">${b.latinName}</span></div>`
     ).join('');
     res.style.display = matches.length ? 'block' : 'none';
   }
@@ -726,62 +736,104 @@ export function switchPanel(panel, eventDetail) {
     return;
   }
 
+  if (panel === 'nerves') {
+    if (state.nerveModelLoading) {
+      _showNerveLoadingOverlay();
+      return;
+    }
+    // Always allow switching to nerves — show missing state if model absent
+  }
+
+  if (panel === 'cardio') {
+    if (state.cardioModelLoading) {
+      _showCardioLoadingOverlay();
+      return;
+    }
+    // Always allow switching to cardio — show missing state if model absent
+  }
+
   state.activePanel = panel;
 
-  const boneSection    = document.getElementById('bone-panel-section');
-  const muscleSection  = document.getElementById('muscle-panel-section');
-  const muscleTabs     = document.getElementById('muscle-category-tabs');
-  const swBones        = document.getElementById('sw-bones');
-  const swMuscles      = document.getElementById('sw-muscles');
+  const boneSection   = document.getElementById('bone-panel-section');
+  const muscleSection = document.getElementById('muscle-panel-section');
+  const nerveSection  = document.getElementById('nerve-panel-section');
+  const cardioSection = document.getElementById('cardio-panel-section');
+  const muscleTabs    = document.getElementById('muscle-category-tabs');
+  const swBones       = document.getElementById('sw-bones');
+  const swMuscles     = document.getElementById('sw-muscles');
+  const swNerves      = document.getElementById('sw-nerves');
+  const swCardio      = document.getElementById('sw-cardio');
+  const searchInput   = document.getElementById('search-input');
+
+  // Hide all
+  boneSection?.classList.add('hidden-panel');
+  muscleSection?.classList.add('hidden-panel');
+  nerveSection?.classList.add('hidden-panel');
+  cardioSection?.classList.add('hidden-panel');
+  swBones?.classList.remove('active');
+  swMuscles?.classList.remove('active');
+  swNerves?.classList.remove('active');
+  swCardio?.classList.remove('active');
+  if (muscleTabs) muscleTabs.style.display = 'none';
 
   if (panel === 'muscles') {
-    boneSection?.classList.add('hidden-panel');
     muscleSection?.classList.remove('hidden-panel');
     if (muscleTabs) muscleTabs.style.display = 'flex';
-    swBones?.classList.remove('active');
     swMuscles?.classList.add('active');
-    document.querySelector('.layer-btn[data-layer="muscles"]')?.classList.add('active');
-    document.querySelector('.layer-btn[data-layer="skeleton"]')?.classList.remove('active');
-    document.getElementById('search-input').placeholder = 'Search muscles…';
-    // Ensure list is visible (loading/missing overlays may have hidden it)
+    if (searchInput) searchInput.placeholder = t('search_muscles') || 'Search muscles…';
     const list    = document.getElementById('muscle-list');
     const missing = document.getElementById('muscle-missing-state');
     if (list)    list.style.display = '';
     if (missing) missing.style.display = 'none';
-    // Default to combined view when entering muscles panel
     setDisplayMode('combined');
     buildMuscleList('all');
+  } else if (panel === 'nerves') {
+    nerveSection?.classList.remove('hidden-panel');
+    swNerves?.classList.add('active');
+    if (searchInput) searchInput.placeholder = t('search_nerves') || 'Search nerves…';
+    if (!state.nerveModelLoaded) _showNerveMissingOverlay();
+    else buildNerveList('all');
+    const nerveOpacityRow = document.getElementById('nerve-opacity-row');
+    if (nerveOpacityRow) nerveOpacityRow.style.display = 'flex';
+  } else if (panel === 'cardio') {
+    cardioSection?.classList.remove('hidden-panel');
+    swCardio?.classList.add('active');
+    if (searchInput) searchInput.placeholder = t('search_cardio') || 'Search cardiovascular…';
+    if (!state.cardioModelLoaded) _showCardioMissingOverlay();
+    else buildCardioList('all');
+    const cardioOpacityRow = document.getElementById('cardio-opacity-row');
+    if (cardioOpacityRow) cardioOpacityRow.style.display = 'flex';
   } else {
+    // Default: bones
     muscleSection?.classList.add('hidden-panel');
+    nerveSection?.classList.add('hidden-panel');
+    cardioSection?.classList.add('hidden-panel');
     boneSection?.classList.remove('hidden-panel');
     if (muscleTabs) muscleTabs.style.display = 'none';
     swMuscles?.classList.remove('active');
+    swNerves?.classList.remove('active');
+    swCardio?.classList.remove('active');
     swBones?.classList.add('active');
     document.querySelector('.layer-btn[data-layer="skeleton"]')?.classList.add('active');
     document.querySelector('.layer-btn[data-layer="muscles"]')?.classList.remove('active');
-    document.getElementById('search-input').placeholder = 'Search anatomy database…';
-    // Back to skeleton-only view
+    if (searchInput) searchInput.placeholder = 'Search anatomy database…';
     setDisplayMode('skeleton');
     _clearMuscleHighlights();
     _clearMuscleMeshHighlight();
     const md = document.getElementById('muscle-detail');
+    const cd = document.getElementById('cardio-detail');
     const bd = document.getElementById('bone-detail');
     if (md) md.style.display = 'none';
+    if (cd) cd.style.display = 'none';
     if (bd && state.currentMode !== 'quiz' && !state.isAnnotating) bd.style.display = 'block';
     const ms = document.getElementById('muscle-missing-state');
-    if (ms) {
-      ms.style.display = 'none';
-      const title  = ms.querySelector('.mmissing-title');
-      const body   = ms.querySelector('.mmissing-body');
-      const errDiv = ms.querySelector('.mmissing-error');
-      const path   = ms.querySelector('.mmissing-path');
-      const hint   = ms.querySelector('.mmissing-hint');
-      if (title)  title.textContent = 'Real 3D Muscle Model Not Found';
-      if (body)   body.textContent  = 'To enable the Muscular System, add a real human anatomy GLB file:';
-      if (errDiv) { errDiv.textContent = ''; errDiv.style.display = 'none'; }
-      if (path)   path.style.display = '';
-      if (hint)   hint.style.display = '';
-    }
+    if (ms) ms.style.display = 'none';
+    const cms = document.getElementById('cardio-missing-state');
+    if (cms) cms.style.display = 'none';
+    const cardioOpacityRow = document.getElementById('cardio-opacity-row');
+    if (cardioOpacityRow) cardioOpacityRow.style.display = 'none';
+    const nerveOpacityRow = document.getElementById('nerve-opacity-row');
+    if (nerveOpacityRow) nerveOpacityRow.style.display = 'none';
   }
 }
 
@@ -909,18 +961,31 @@ function buildMuscleDetailHTML(muscle) {
       <div class="detail-label">🦴 Highlighted on Skeleton</div>
       <div class="detail-text" id="muscle-highlight-text"></div>
     </div>
+    <div class="detail-actions" style="margin-top: 20px; display: flex; gap: 10px;">
+      <button class="action-btn" onclick="window.animateMuscleContract()" style="flex:1" data-i18n="btn_animate">${t('btn_animate') || 'Animate'}</button>
+      <button class="action-btn" onclick="window.deselectMuscle()" style="background:rgba(255,255,255,0.05);color:var(--text);flex:1" data-i18n="btn_close">${t('btn_close') || 'Close'}</button>
+    </div>
   `;
 }
 
 function _clearMuscleMeshHighlight() {
-  if (state.selectedMuscleMesh) {
-    const prev = state.selectedMuscleMesh;
-    (state.muscleMeshGroups[prev.userData.muscleId] || [prev]).forEach(m => {
-      m.material.color.setHex(0xc0392b);   // match createMuscleMat base color
-      m.material.emissive.setHex(0x000000);
+  if (state.selectedMuscleMesh && state.selectedMuscle) {
+    (state.muscleMeshGroups[state.selectedMuscle.id] || [state.selectedMuscleMesh]).forEach(m => {
+      m.material.color.setHex(0x9b1b1b);
       m.material.emissiveIntensity = 0;
     });
     state.selectedMuscleMesh = null;
+  }
+}
+
+function _clearMuscleMarkers() {
+  if (state.muscleMarkers) {
+    state.muscleMarkers.forEach(m => {
+      if (m.parent) m.parent.remove(m);
+      if (m.geometry) m.geometry.dispose();
+      if (m.material) m.material.dispose();
+    });
+    state.muscleMarkers = [];
   }
 }
 
@@ -929,9 +994,6 @@ export function selectMuscle(id) {
   if (!muscle) return;
 
   state.selectedMuscle = muscle;
-
-  // Deselect any bone
-  if (state.selectedBone) deselectAll();
 
   // ── 3D muscle mesh highlight (when model is loaded) ────────────────────────
   _clearMuscleMeshHighlight();
@@ -982,6 +1044,45 @@ export function selectMuscle(id) {
     if (textDiv) textDiv.textContent = highlightedNames.join(', ');
   }
 
+  // ── 3D Origin / Insertion Markers (Red/Blue) ─────────────────────────────────
+  _clearMuscleMarkers();
+  if (state.muscleModelLoaded) {
+    const originMat = new THREE.MeshBasicMaterial({ color: 0xff4444, depthTest: false, transparent: true, opacity: 0.8 });
+    const insertionMat = new THREE.MeshBasicMaterial({ color: 0x4444ff, depthTest: false, transparent: true, opacity: 0.8 });
+    const geom = new THREE.SphereGeometry(0.015, 16, 16);
+    
+    const placeMarker = (bonesArray, mat) => {
+      (bonesArray || []).forEach(bId => {
+        const bMeshes = state.boneMeshGroups[bId];
+        if (bMeshes && bMeshes.length > 0) {
+          const mesh = bMeshes[0];
+          mesh.geometry.computeBoundingBox();
+          const center = new THREE.Vector3();
+          mesh.geometry.boundingBox.getCenter(center);
+          center.applyMatrix4(mesh.matrixWorld);
+          
+          const marker = new THREE.Mesh(geom, mat);
+          marker.position.copy(center);
+          marker.renderOrder = 999;
+          state.muscleMarkers.push(marker);
+          scene.add(marker);
+        }
+      });
+    };
+    placeMarker(muscle.originBones, originMat);
+    placeMarker(muscle.insertionBones, insertionMat);
+  }
+
+  // ── Camera Focus Tween ────────────────────────────────────────────────────────
+  if (state.muscleModelLoaded && state.selectedMuscleMesh) {
+    const worldPos = new THREE.Vector3();
+    state.selectedMuscleMesh.getWorldPosition(worldPos);
+    
+    new TWEEN.Tween(window.appControls.target)
+      .to({ x: worldPos.x, y: worldPos.y, z: worldPos.z }, 800)
+      .easing(TWEEN.Easing.Cubic.Out).start();
+  }
+
   // ── List selection ───────────────────────────────────────────────────────────
   document.querySelectorAll('.muscle-list-item.selected').forEach(el => el.classList.remove('selected'));
   const item = document.querySelector(`.muscle-list-item[data-muscle-id="${id}"]`);
@@ -995,6 +1096,7 @@ export function deselectMuscle() {
   state.selectedMuscle = null;
   _clearMuscleHighlights();
   _clearMuscleMeshHighlight();
+  _clearMuscleMarkers();
   document.querySelectorAll('.muscle-list-item.selected').forEach(el => el.classList.remove('selected'));
   const md = document.getElementById('muscle-detail');
   const bd = document.getElementById('bone-detail');
@@ -1083,14 +1185,389 @@ export function toggleSkeletonVisibility() {
   else setDisplayMode('skeleton');
 }
 
-// Override setLayer to handle skeleton/muscles panel switching
+// Override setLayer to handle skeleton/muscles/nerves/cardio panel switching
 function _setLayerWrapped(layerKey) {
   if (layerKey === 'muscles') {
     switchPanel('muscles');
   } else if (layerKey === 'skeleton') {
     switchPanel('bones');
+  } else if (layerKey === 'nerves') {
+    switchPanel('nerves');
+  } else if (layerKey === 'cardio') {
+    switchPanel('cardio');
   } else {
     _setLayerBase(layerKey);
+  }
+}
+
+export function animateMuscleContract() {
+  if (!state.selectedMuscleMesh) return;
+  const mesh = state.selectedMuscleMesh;
+  const originalScale = mesh.scale.clone();
+  
+  // Bulge the muscle: compress on Y (length) and expand on X/Z (girth)
+  new TWEEN.Tween(mesh.scale)
+    .to({ x: originalScale.x * 1.2, y: originalScale.y * 0.9, z: originalScale.z * 1.2 }, 300)
+    .easing(TWEEN.Easing.Quadratic.Out)
+    .onComplete(() => {
+      new TWEEN.Tween(mesh.scale)
+        .to({ x: originalScale.x, y: originalScale.y, z: originalScale.z }, 400)
+        .easing(TWEEN.Easing.Bounce.Out)
+        .start();
+    })
+    .start();
+}
+
+// ─── Nervous System Functions ─────────────────────────────────────────────────
+
+export function selectNerve(id) {
+  const nerve = NERVE_DB.find(n => n.id === id);
+  if (!nerve) return;
+
+  state.selectedNerve = nerve;
+
+  // Highlight the 3D mesh if model is loaded
+  _clearNerveMeshHighlight();
+  if (state.nerveModelLoaded) {
+    const primaryMesh = state.nerveMeshes[id];
+    if (primaryMesh) {
+      state.selectedNerveMesh = primaryMesh;
+      (state.nerveMeshGroups[id] || [primaryMesh]).forEach(m => {
+        m.material.color.setHex(0xfde047); // bright yellow highlight
+        m.material.emissive = m.material.emissive || new THREE.Color(0);
+        m.material.emissive.setHex(0xfde047);
+        m.material.emissiveIntensity = 0.5;
+      });
+      // Smooth camera focus
+      const worldPos = new THREE.Vector3();
+      primaryMesh.getWorldPosition(worldPos);
+      new TWEEN.Tween(window.appControls.target)
+        .to({ x: worldPos.x, y: worldPos.y, z: worldPos.z }, 800)
+        .easing(TWEEN.Easing.Cubic.Out).start();
+    }
+  }
+
+  // Show nerve detail in right panel
+  const nd = document.getElementById('nerve-detail');
+  const bd = document.getElementById('bone-detail');
+  if (nd) { nd.innerHTML = _buildNerveDetailHTML(nerve); nd.style.display = 'block'; }
+  if (bd) bd.style.display = 'none';
+
+  // List highlight
+  document.querySelectorAll('.nerve-list-item.selected').forEach(el => el.classList.remove('selected'));
+  const item = document.querySelector(`.nerve-list-item[data-nerve-id="${id}"]`);
+  if (item) { item.classList.add('selected'); item.scrollIntoView({ block: 'nearest' }); }
+
+  if (window.innerWidth <= 1024) toggleSidebar('right');
+}
+
+export function deselectNerve() {
+  if (!state.selectedNerve) return;
+  state.selectedNerve = null;
+  _clearNerveMeshHighlight();
+  document.querySelectorAll('.nerve-list-item.selected').forEach(el => el.classList.remove('selected'));
+  const nd = document.getElementById('nerve-detail');
+  if (nd) { nd.style.display = 'none'; nd.innerHTML = ''; }
+}
+
+function _clearNerveMeshHighlight() {
+  if (state.selectedNerveMesh && state.selectedNerve) {
+    (state.nerveMeshGroups[state.selectedNerve.id] || [state.selectedNerveMesh]).forEach(m => {
+      m.material.color.setHex(0xd4a017);
+      m.material.emissiveIntensity = 0;
+    });
+  }
+  state.selectedNerveMesh = null;
+}
+
+function _buildNerveDetailHTML(nerve) {
+  const NA = `<span class="data-na">${t('data_na') || 'Not specified'}</span>`;
+  const name = tObj(nerve.name) || nerve.id;
+  const desc = tObj(nerve.description) || NA;
+  const func = tObj(nerve.function) || NA;
+  const clin = tObj(nerve.clinicalNotes) || NA;
+  return `
+    <div class="detail-card muscle-card">
+      <div class="muscle-badge">🧠 ${t('tab_nerves') || 'Nerve'}</div>
+      <h3>${name}</h3>
+      <div class="latin">${nerve.latinName}</div>
+      <span class="detail-cat-tag">${t('ncat_' + nerve.category) || nerve.category}</span>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">📝 ${t('label_description') || 'Description'}</div>
+      <div class="detail-text">${desc}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">⚡ ${t('label_function') || 'Function'}</div>
+      <div class="detail-text">${func}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">🏥 ${t('label_clinical') || 'Clinical Notes'}</div>
+      <div class="detail-text">${clin}</div>
+    </div>
+    <div class="detail-actions" style="margin-top:20px;display:flex;gap:10px">
+      <button class="action-btn" onclick="window.deselectNerve()" style="background:rgba(255,255,255,0.05);color:var(--text);flex:1" data-i18n="btn_close">${t('btn_close') || 'Close'}</button>
+    </div>
+  `;
+}
+
+export function buildNerveList(filter = 'all') {
+  const list = document.getElementById('nerve-list');
+  if (!list) return;
+  list.innerHTML = '';
+  const items = filter === 'all' ? NERVE_DB : NERVE_DB.filter(n => n.category === filter);
+  const selId  = state.selectedNerve ? state.selectedNerve.id : null;
+  items.forEach(n => {
+    const div = document.createElement('div');
+    div.className = 'nerve-list-item bone-list-item';
+    div.dataset.nerveId = n.id;
+    div.tabIndex = 0;
+    div.setAttribute('role', 'button');
+    div.setAttribute('aria-label', `${tObj(n.name) || n.id} — ${n.latinName}`);
+    if (n.id === selId) div.classList.add('selected');
+    div.innerHTML = `<span class="muscle-dot" style="background:#d4a017"></span><div><span>${tObj(n.name) || n.id}</span><span class="bone-latin">${n.latinName}</span></div>`;
+    div.addEventListener('click', () => { selectNerve(n.id); if (window.innerWidth <= 1024) closeAllSidebars(); });
+    div.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectNerve(n.id); }
+    });
+    list.appendChild(div);
+  });
+}
+
+export function filterNerveCategory(cat, btn) {
+  document.querySelectorAll('.nerve-cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildNerveList(cat);
+}
+
+export function setNerveOpacity(val) {
+  const opacity = parseFloat(val);
+  state.nerveOpacity = opacity;
+  state.nerveAllMeshes.forEach(m => {
+    m.material.opacity = opacity;
+    m.material.transparent = opacity < 1.0;
+  });
+  const lbl = document.getElementById('nerve-opacity-label');
+  if (lbl) lbl.textContent = Math.round(opacity * 100) + '%';
+}
+
+export function toggleNerveLayer() {
+  state.nerveVisible = !state.nerveVisible;
+  if (state.nerveGroup) state.nerveGroup.visible = state.nerveVisible;
+  const btn = document.getElementById('btn-layer-nerves');
+  if (btn) btn.classList.toggle('active', state.nerveVisible);
+}
+
+export function retryNerveLoad() {
+  if (state.nerveModelLoaded || state.nerveModelLoading) return;
+  const ms = document.getElementById('nerve-missing-state');
+  if (ms) ms.style.display = 'none';
+  
+  tryLoadNerveModel();
+}
+
+function _showNerveMissingOverlay() {
+  const ms   = document.getElementById('nerve-missing-state');
+  const list = document.getElementById('nerve-list');
+  if (list) list.style.display = 'none';
+  if (ms)   ms.style.display  = 'flex';
+}
+
+function _showNerveLoadingOverlay() {
+  const nerveSection = document.getElementById('nerve-panel-section');
+  const swNerves     = document.getElementById('sw-nerves');
+  const boneSection  = document.getElementById('bone-panel-section');
+  const swBones      = document.getElementById('sw-bones');
+  const ms           = document.getElementById('nerve-missing-state');
+  const list         = document.getElementById('nerve-list');
+
+  boneSection?.classList.add('hidden-panel');
+  nerveSection?.classList.remove('hidden-panel');
+  swBones?.classList.remove('active');
+  swNerves?.classList.add('active');
+  if (list) list.style.display = 'none';
+  if (ms) {
+    ms.style.display = 'flex';
+    const title = ms.querySelector('.mmissing-title');
+    const body  = ms.querySelector('.mmissing-body');
+    if (title) title.textContent = 'Loading Nervous System…';
+    if (body)  body.textContent  = 'Downloading 3D model, please wait.';
+  }
+}
+
+// ─── Cardiovascular System Functions ────────────────────────────────────────
+
+export function selectCardio(id) {
+  const item = CARDIO_DB.find(c => c.id === id);
+  if (!item) return;
+
+  state.selectedCardio = item;
+
+  // Highlight 3D mesh if model loaded
+  _clearCardioMeshHighlight();
+  if (state.cardioModelLoaded) {
+    const primaryMesh = state.cardioMeshes[id];
+    if (primaryMesh) {
+      state.selectedCardioMesh = primaryMesh;
+      (state.cardioMeshGroups[id] || [primaryMesh]).forEach(m => {
+        m.material.color.setHex(0xfbbf24);
+        m.material.emissive = m.material.emissive || new THREE.Color(0);
+        m.material.emissive.setHex(0xfbbf24);
+        m.material.emissiveIntensity = 0.6;
+      });
+      const worldPos = new THREE.Vector3();
+      primaryMesh.getWorldPosition(worldPos);
+      new TWEEN.Tween(window.appControls.target)
+        .to({ x: worldPos.x, y: worldPos.y, z: worldPos.z }, 800)
+        .easing(TWEEN.Easing.Cubic.Out).start();
+    }
+  }
+
+  // Show detail panel
+  const cd = document.getElementById('cardio-detail');
+  const bd = document.getElementById('bone-detail');
+  if (cd) { cd.innerHTML = _buildCardioDetailHTML(item); cd.style.display = 'block'; }
+  if (bd) bd.style.display = 'none';
+
+  document.querySelectorAll('.cardio-list-item.selected').forEach(el => el.classList.remove('selected'));
+  const el = document.querySelector(`.cardio-list-item[data-cardio-id="${id}"]`);
+  if (el) { el.classList.add('selected'); el.scrollIntoView({ block: 'nearest' }); }
+
+  if (window.innerWidth <= 1024) toggleSidebar('right');
+}
+
+export function deselectCardio() {
+  if (!state.selectedCardio) return;
+  state.selectedCardio = null;
+  _clearCardioMeshHighlight();
+  document.querySelectorAll('.cardio-list-item.selected').forEach(el => el.classList.remove('selected'));
+  const cd = document.getElementById('cardio-detail');
+  if (cd) { cd.style.display = 'none'; cd.innerHTML = ''; }
+}
+
+function _clearCardioMeshHighlight() {
+  if (state.selectedCardioMesh && state.selectedCardio) {
+    const isVein = state.selectedCardio.category === 'veins';
+    (state.cardioMeshGroups[state.selectedCardio.id] || [state.selectedCardioMesh]).forEach(m => {
+      m.material.color.setHex(isVein ? 0x0000cc : 0xaa0000);
+      m.material.emissiveIntensity = 0;
+    });
+  }
+  state.selectedCardioMesh = null;
+}
+
+function _buildCardioDetailHTML(item) {
+  const NA   = `<span class="data-na">${t('data_na') || 'Not specified'}</span>`;
+  const name = t(item.name) || item.id;
+  const desc = t(item.description) || NA;
+  const func = t(item.function) || NA;
+  const clin = t(item.clinicalNotes) || NA;
+  const catIcon = item.category === 'veins' ? '🔵' : item.category === 'heart' ? '❤️' : '🔴';
+  return `
+    <div class="detail-card muscle-card">
+      <div class="muscle-badge">${catIcon} ${t('tab_cardio') || 'Cardio'}</div>
+      <h3>${name}</h3>
+      <div class="latin">${item.latinName}</div>
+      <span class="detail-cat-tag">${t('ccat_' + item.category) || item.category}</span>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">📝 ${t('label_description') || 'Description'}</div>
+      <div class="detail-text">${desc}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">⚡ ${t('label_function') || 'Function'}</div>
+      <div class="detail-text">${func}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">🏥 ${t('label_clinical') || 'Clinical Notes'}</div>
+      <div class="detail-text">${clin}</div>
+    </div>
+    <div class="detail-actions" style="margin-top:20px;display:flex;gap:10px">
+      <button class="action-btn" onclick="window.deselectCardio()" style="background:rgba(255,255,255,0.05);color:var(--text);flex:1" data-i18n="btn_close">${t('btn_close') || 'Close'}</button>
+    </div>
+  `;
+}
+
+export function buildCardioList(filter = 'all') {
+  const list = document.getElementById('cardio-list');
+  if (!list) return;
+  list.innerHTML = '';
+  const items = filter === 'all' ? CARDIO_DB : CARDIO_DB.filter(c => c.category === filter);
+  const selId  = state.selectedCardio ? state.selectedCardio.id : null;
+  items.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'cardio-list-item bone-list-item';
+    div.dataset.cardioId = c.id;
+    div.tabIndex = 0;
+    div.setAttribute('role', 'button');
+    div.setAttribute('aria-label', `${t(c.name) || c.id} — ${c.latinName}`);
+    if (c.id === selId) div.classList.add('selected');
+    const dot = c.category === 'veins' ? '#1a6ec7' : c.category === 'heart' ? '#d63031' : '#e84393';
+    div.innerHTML = `<span class="muscle-dot" style="background:${dot}"></span><div><span>${t(c.name) || c.id}</span><span class="bone-latin">${c.latinName}</span></div>`;
+    div.addEventListener('click', () => { selectCardio(c.id); if (window.innerWidth <= 1024) closeAllSidebars(); });
+    div.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectCardio(c.id); }
+    });
+    list.appendChild(div);
+  });
+}
+
+export function filterCardioCategory(cat, btn) {
+  document.querySelectorAll('.cardio-cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildCardioList(cat);
+}
+
+export function setCardioOpacity(val) {
+  const opacity = parseFloat(val);
+  state.cardioOpacity = opacity;
+  state.cardioAllMeshes.forEach(m => {
+    m.material.opacity = opacity;
+    m.material.transparent = opacity < 1.0;
+  });
+  const lbl = document.getElementById('cardio-opacity-label');
+  if (lbl) lbl.textContent = Math.round(opacity * 100) + '%';
+}
+
+export function toggleCardioLayer() {
+  state.cardioVisible = !state.cardioVisible;
+  if (state.cardioGroup) state.cardioGroup.visible = state.cardioVisible;
+  const btn = document.getElementById('btn-layer-cardio');
+  if (btn) btn.classList.toggle('active', state.cardioVisible);
+}
+
+export function retryCardioLoad() {
+  if (state.cardioModelLoaded || state.cardioModelLoading) return;
+  const ms = document.getElementById('cardio-missing-state');
+  if (ms) ms.style.display = 'none';
+  tryLoadCardioModel();
+}
+
+function _showCardioMissingOverlay() {
+  const list = document.getElementById('cardio-list');
+  const ms   = document.getElementById('cardio-missing-state');
+  if (list) list.style.display = 'none';
+  if (ms)   ms.style.display  = 'flex';
+}
+
+function _showCardioLoadingOverlay() {
+  const cardioSection = document.getElementById('cardio-panel-section');
+  const swCardio      = document.getElementById('sw-cardio');
+  const boneSection   = document.getElementById('bone-panel-section');
+  const swBones       = document.getElementById('sw-bones');
+  const ms            = document.getElementById('cardio-missing-state');
+  const list          = document.getElementById('cardio-list');
+  boneSection?.classList.add('hidden-panel');
+  cardioSection?.classList.remove('hidden-panel');
+  swBones?.classList.remove('active');
+  swCardio?.classList.add('active');
+  if (list) list.style.display = 'none';
+  if (ms) {
+    ms.style.display = 'flex';
+    const title = ms.querySelector('.mmissing-title');
+    const body  = ms.querySelector('.mmissing-body');
+    if (title) title.textContent = 'Loading Cardiovascular System…';
+    if (body)  body.textContent  = 'Downloading 3D model, please wait.';
   }
 }
 

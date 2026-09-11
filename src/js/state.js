@@ -35,6 +35,7 @@ export const state = {
   skeletonOpacity: 1.0,        // skeleton opacity (0–1)
   muscleHighlightedBones: [],  // bone IDs highlighted for muscle origin/insertion
   muscleFilter: 'all',         // current muscle category filter
+  muscleMarkers: [],           // array of THREE.Mesh for origin/insertion
   // 3D muscle model — populated by muscle_loader.js after GLB loads
   muscleModelLoaded: false,
   muscleModelLoading: false,   // true while GLB is in flight
@@ -44,4 +45,30 @@ export const state = {
   muscleMeshes: {},
   muscleOpacity: 0.92,
   selectedMuscleMesh: null,    // currently highlighted 3D muscle mesh
+  // Nervous System — populated by nerve_loader.js after GLB loads
+  nerveModelLoaded: false,
+  nerveModelLoading: false,
+  nerveModelMissing: false,
+  nerveGroup: null,
+  nerveAllMeshes: [],
+  nerveMeshGroups: {},
+  nerveMeshes: {},
+  nerveOpacity: 0.85,
+  nerveVisible: false,         // off by default, user activates layer
+  selectedNerve: null,
+  selectedNerveMesh: null,
+  nerveMarkers: [],
+
+  // Cardiovascular System — populated by cardio_loader.js after GLB loads
+  cardioModelLoaded: false,
+  cardioModelLoading: false,
+  cardioModelMissing: false,
+  cardioGroup: null,
+  cardioAllMeshes: [],
+  cardioMeshGroups: {},
+  cardioMeshes: {},
+  cardioOpacity: 1.0,
+  cardioVisible: false,         // off by default, user activates layer
+  selectedCardio: null,
+  selectedCardioMesh: null
 };

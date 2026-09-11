@@ -9,36 +9,41 @@
 
 <div id="loading" role="status" aria-live="polite">
   <div class="loading-logo">🦴 OsteoVis</div>
-  <div style="font-size:15px;color:var(--text2)">Loading High-Resolution Medical Atlas…</div>
+  <div style="font-size:15px;color:var(--text2)" data-i18n="loading_title">Loading High-Resolution Medical Atlas…</div>
   <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
 </div>
 
 <div id="header" role="banner">
-  <button class="mobile-toggle" onclick="toggleSidebar('left')" aria-label="Open bone navigation">☰</button>
+  <button class="mobile-toggle" onclick="toggleSidebar('left')" aria-label="Open bone navigation" data-i18n="nav_close">☰</button>
   <div class="logo" aria-label="OsteoVis"><span class="logo-icon">🦴</span><span>OsteoVis</span></div>
   <nav class="header-center" aria-label="View modes">
-    <button class="mode-btn active" id="btn-mode-normal"  onclick="setMode('normal')"  aria-label="Explore mode"         aria-pressed="true">Explore</button>
-    <button class="mode-btn"        id="btn-mode-explode" onclick="setMode('explode')" aria-label="Explode anatomy view"  aria-pressed="false">Explode</button>
-    <button class="mode-btn"        id="btn-mode-learn"   onclick="setMode('learn')"   aria-label="Anatomy systems mode"  aria-pressed="false">Systems</button>
-    <button class="mode-btn"        id="btn-mode-quiz"    onclick="setMode('quiz')"    aria-label="Anatomy quiz mode"     aria-pressed="false">Quiz</button>
+    <button class="mode-btn active" id="btn-mode-normal"  onclick="setMode('normal')"  aria-label="Explore mode"         aria-pressed="true" data-i18n="mode_explore">Explore</button>
+    <button class="mode-btn"        id="btn-mode-explode" onclick="setMode('explode')" aria-label="Explode anatomy view"  aria-pressed="false" data-i18n="mode_explode">Explode</button>
+    <button class="mode-btn"        id="btn-mode-learn"   onclick="setMode('learn')"   aria-label="Anatomy systems mode"  aria-pressed="false" data-i18n="mode_learn">Systems</button>
+    <button class="mode-btn"        id="btn-mode-quiz"    onclick="setMode('quiz')"    aria-label="Anatomy quiz mode"     aria-pressed="false" data-i18n="mode_quiz">Quiz</button>
   </nav>
   <div class="header-right">
-    <button class="icon-btn" id="btn-xray"         onclick="toggleXRay()"          title="X-Ray Mode"           aria-label="Toggle X-ray mode"          aria-pressed="false">☢</button>
-    <button class="icon-btn" id="btn-measure"      onclick="toggleMeasure()"       title="Measure Tool"         aria-label="Toggle measurement tool"    aria-pressed="false">📏</button>
-    <button class="icon-btn" id="btn-annotate"     onclick="toggleAnnotate()"      title="Annotate"             aria-label="Toggle annotation tool"     aria-pressed="false">📌</button>
-    <button class="icon-btn" id="btn-section"      onclick="toggleSection()"       title="Cross Section"        aria-label="Toggle cross section"       aria-pressed="false">✂</button>
-    <button class="icon-btn" id="btn-isolate"      onclick="toggleIsolation()"     title="Isolate Bone (I)"     aria-label="Toggle bone isolation"      aria-pressed="false">🔬</button>
-    <button class="icon-btn" id="btn-presentation" onclick="togglePresentation()"  title="Presentation Mode"    aria-label="Toggle presentation mode"   aria-pressed="false">🖥</button>
-    <button class="icon-btn" id="btn-labels"       onclick="toggleLabels()"        title="Toggle Labels"        aria-label="Toggle bone labels"         aria-pressed="false">🏷️</button>
-    <button class="icon-btn" id="btn-rotate"       onclick="toggleRotate()"        title="Auto-Rotate"          aria-label="Toggle auto-rotate"         aria-pressed="false">↻</button>
+    <button class="icon-btn" id="btn-xray"         onclick="toggleXRay()"          title="X-Ray Mode"           aria-label="Toggle X-ray mode"          aria-pressed="false" data-i18n-title="tt_xray">☢</button>
+    <button class="icon-btn" id="btn-measure"      onclick="toggleMeasure()"       title="Measure Tool"         aria-label="Toggle measurement tool"    aria-pressed="false" data-i18n-title="tt_measure">📏</button>
+    <button class="icon-btn" id="btn-annotate"     onclick="toggleAnnotate()"      title="Annotate"             aria-label="Toggle annotation tool"     aria-pressed="false" data-i18n-title="tt_annotate">📌</button>
+    <button class="icon-btn" id="btn-section"      onclick="toggleSection()"       title="Cross Section"        aria-label="Toggle cross section"       aria-pressed="false" data-i18n-title="tt_section">✂</button>
+    <button class="icon-btn" id="btn-isolate"      onclick="toggleIsolation()"     title="Isolate Bone (I)"     aria-label="Toggle bone isolation"      aria-pressed="false" data-i18n-title="tt_isolate">🔬</button>
+    <button class="icon-btn" id="btn-presentation" onclick="togglePresentation()"  title="Presentation Mode"    aria-label="Toggle presentation mode"   aria-pressed="false" data-i18n-title="tt_pres">🖥</button>
+    <button class="icon-btn" id="btn-labels"       onclick="toggleLabels()"        title="Toggle Labels"        aria-label="Toggle bone labels"         aria-pressed="false" data-i18n-title="tt_labels">🏷️</button>
+    <button class="icon-btn" id="btn-rotate"       onclick="toggleRotate()"        title="Auto-Rotate"          aria-label="Toggle auto-rotate"         aria-pressed="false" data-i18n-title="tt_rotate">↻</button>
     <div id="screenshot-wrap" style="position:relative">
-      <button class="icon-btn" id="btn-screenshot" onclick="toggleScreenshotMenu()" title="Screenshot" aria-label="Take screenshot">📷</button>
+      <button class="icon-btn" id="btn-screenshot" onclick="toggleScreenshotMenu()" title="Screenshot" data-i18n-title="tt_screen" aria-label="Take screenshot">📷</button>
       <div id="screenshot-menu" class="screenshot-dropdown">
-        <button onclick="takeScreenshot(false)">📸 Normal</button>
-        <button onclick="takeScreenshot(true)">🌙 Transparent BG</button>
+        <button onclick="takeScreenshot(false)" data-i18n="btn_screen_norm">📸 Normal</button>
+        <button onclick="takeScreenshot(true)" data-i18n="btn_screen_trans">🌙 Transparent BG</button>
       </div>
     </div>
-    <button class="mobile-toggle" onclick="toggleSidebar('right')" style="font-size:20px" aria-label="Open bone details">ℹ️</button>
+    <select id="lang-switch" class="lang-switch" aria-label="Select Language">
+      <option value="tg">🇹🇯 Тоҷикӣ</option>
+      <option value="ru">🇷🇺 Русский</option>
+      <option value="en">🇬🇧 English</option>
+    </select>
+    <button class="mobile-toggle" onclick="toggleSidebar('right')" style="font-size:20px" aria-label="Open bone details" data-i18n="nav_close">ℹ️</button>
   </div>
 </div>
 
@@ -52,15 +57,17 @@
     </div>
     <!-- System switcher -->
     <div id="system-switcher" role="tablist" aria-label="Anatomy system">
-      <button class="sys-switch-btn active" id="sw-bones"   onclick="switchPanel('bones')"   aria-label="Skeleton panel" aria-selected="true">🦴 Skeleton</button>
-      <button class="sys-switch-btn"        id="sw-muscles" onclick="switchPanel('muscles')" aria-label="Muscles panel" aria-selected="false">💪 Muscles</button>
+      <button class="sys-switch-btn active" id="sw-bones"   onclick="switchPanel('bones')"   aria-label="Skeleton panel" aria-selected="true"  data-i18n="tab_skeleton">🦴 Skeleton</button>
+      <button class="sys-switch-btn"        id="sw-muscles" onclick="switchPanel('muscles')" aria-label="Muscles panel" aria-selected="false" data-i18n="tab_muscles">💪 Muscles</button>
+      <button class="sys-switch-btn"        id="sw-nerves"  onclick="switchPanel('nerves')"  aria-label="Nerves panel"  aria-selected="false" data-i18n="tab_nerves">🧠 Nerves</button>
+      <button class="sys-switch-btn"        id="sw-cardio"  onclick="switchPanel('cardio')"  aria-label="Cardio panel"  aria-selected="false" data-i18n="tab_cardio">🫀 Cardio</button>
     </div>
 
     <!-- Search (shared) -->
     <div id="search-wrap">
       <div class="search-wrap-inner">
         <span class="search-icon" aria-hidden="true">🔍</span>
-        <input id="search-input" type="text" placeholder="Search anatomy database…" oninput="doSearch(this.value)" aria-label="Search anatomy database" autocomplete="off">
+        <input id="search-input" type="text" placeholder="Search anatomy database…" oninput="doSearch(this.value)" aria-label="Search anatomy database" autocomplete="off" data-i18n="search_bones">
         <div id="search-results" role="listbox" aria-label="Search results"></div>
       </div>
     </div>
@@ -68,15 +75,15 @@
     <!-- BONE PANEL -->
     <div id="bone-panel-section">
       <div class="section-tabs" id="section-tabs" role="tablist" aria-label="Bone categories">
-        <button class="section-tab active" data-cat="all"       onclick="filterCategory('all',this)"       role="tab" aria-selected="true">All</button>
-        <button class="section-tab"        data-cat="skull"     onclick="filterCategory('skull',this)"     role="tab" aria-selected="false">Skull</button>
-        <button class="section-tab"        data-cat="vertebral" onclick="filterCategory('vertebral',this)" role="tab" aria-selected="false">Spine</button>
-        <button class="section-tab"        data-cat="thorax"    onclick="filterCategory('thorax',this)"    role="tab" aria-selected="false">Thorax</button>
-        <button class="section-tab"        data-cat="upper"     onclick="filterCategory('upper',this)"     role="tab" aria-selected="false">Upper Limb</button>
-        <button class="section-tab"        data-cat="pelvis"    onclick="filterCategory('pelvis',this)"    role="tab" aria-selected="false">Pelvis</button>
-        <button class="section-tab"        data-cat="lower"     onclick="filterCategory('lower',this)"     role="tab" aria-selected="false">Lower Limb</button>
-        <button class="section-tab"        data-cat="hand"      onclick="filterCategory('hand',this)"      role="tab" aria-selected="false">Hand</button>
-        <button class="section-tab"        data-cat="foot"      onclick="filterCategory('foot',this)"      role="tab" aria-selected="false">Foot</button>
+        <button class="section-tab active" data-cat="all"       onclick="filterCategory('all',this)"       role="tab" aria-selected="true" data-i18n="cat_all">All</button>
+        <button class="section-tab"        data-cat="skull"     onclick="filterCategory('skull',this)"     role="tab" aria-selected="false" data-i18n="cat_skull">Skull</button>
+        <button class="section-tab"        data-cat="vertebral" onclick="filterCategory('vertebral',this)" role="tab" aria-selected="false" data-i18n="cat_vertebral">Spine</button>
+        <button class="section-tab"        data-cat="thorax"    onclick="filterCategory('thorax',this)"    role="tab" aria-selected="false" data-i18n="cat_thorax">Thorax</button>
+        <button class="section-tab"        data-cat="upper"     onclick="filterCategory('upper',this)"     role="tab" aria-selected="false" data-i18n="cat_upper">Upper Limb</button>
+        <button class="section-tab"        data-cat="pelvis"    onclick="filterCategory('pelvis',this)"    role="tab" aria-selected="false" data-i18n="cat_pelvis">Pelvis</button>
+        <button class="section-tab"        data-cat="lower"     onclick="filterCategory('lower',this)"     role="tab" aria-selected="false" data-i18n="cat_lower">Lower Limb</button>
+        <button class="section-tab"        data-cat="hand"      onclick="filterCategory('hand',this)"      role="tab" aria-selected="false" data-i18n="cat_hand">Hand</button>
+        <button class="section-tab"        data-cat="foot"      onclick="filterCategory('foot',this)"      role="tab" aria-selected="false" data-i18n="cat_foot">Foot</button>
       </div>
       <div id="bone-list" role="list" aria-label="Bone list"></div>
     </div>
@@ -84,57 +91,121 @@
     <!-- MUSCLE PANEL -->
     <div id="muscle-panel-section" class="hidden-panel">
       <div id="muscle-category-tabs" class="section-tabs" role="tablist" aria-label="Muscle categories" style="display:none">
-        <button class="section-tab muscle-cat-tab active" onclick="filterMuscleCategory('all',this)">All</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('head',this)">Head</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('neck',this)">Neck</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('back',this)">Back</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('chest',this)">Chest</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('shoulder',this)">Shoulder</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('arm',this)">Arm</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('forearm',this)">Forearm</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('hand',this)">Hand</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('abdominal',this)">Abdomen</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('hip',this)">Hip</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('thigh',this)">Thigh</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('leg',this)">Leg</button>
-        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('foot',this)">Foot</button>
+        <button class="section-tab muscle-cat-tab active" onclick="filterMuscleCategory('all',this)" data-i18n="cat_all">All</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('head',this)" data-i18n="mcat_head">Head</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('neck',this)" data-i18n="mcat_neck">Neck</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('back',this)" data-i18n="mcat_back">Back</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('chest',this)" data-i18n="mcat_chest">Chest</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('shoulder',this)" data-i18n="mcat_shoulder">Shoulder</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('arm',this)" data-i18n="mcat_arm">Arm</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('forearm',this)" data-i18n="mcat_forearm">Forearm</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('hand',this)" data-i18n="mcat_hand">Hand</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('abdominal',this)" data-i18n="mcat_abdominal">Abdomen</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('hip',this)" data-i18n="mcat_hip">Hip</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('thigh',this)" data-i18n="mcat_thigh">Thigh</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('leg',this)" data-i18n="mcat_leg">Leg</button>
+        <button class="section-tab muscle-cat-tab" onclick="filterMuscleCategory('foot',this)" data-i18n="mcat_foot">Foot</button>
       </div>
       <!-- Display mode controls — independent skeleton / muscles / combined -->
       <div id="display-mode-row" role="group" aria-label="Display mode">
-        <button id="btn-dm-skeleton"  class="display-mode-btn"        onclick="setDisplayMode('skeleton')"  aria-label="Skeleton only"  title="Show skeleton only">🦴 Skeleton</button>
-        <button id="btn-dm-muscles"   class="display-mode-btn"        onclick="setDisplayMode('muscles')"   aria-label="Muscles only"   title="Show muscles only">💪 Muscles</button>
-        <button id="btn-dm-combined"  class="display-mode-btn active" onclick="setDisplayMode('combined')"  aria-label="Combined view"  title="Show both">⚕ Combined</button>
+        <button id="btn-dm-skeleton"  class="display-mode-btn"        onclick="setDisplayMode('skeleton')"  aria-label="Skeleton only"  title="Show skeleton only" data-i18n="dm_skeleton">🦴 Skeleton</button>
+        <button id="btn-dm-muscles"   class="display-mode-btn"        onclick="setDisplayMode('muscles')"   aria-label="Muscles only"   title="Show muscles only" data-i18n="dm_muscles">💪 Muscles</button>
+        <button id="btn-dm-combined"  class="display-mode-btn active" onclick="setDisplayMode('combined')"  aria-label="Combined view"  title="Show both" data-i18n="dm_combined">⚕ Combined</button>
       </div>
       <div id="muscle-list" role="list" aria-label="Muscle list"></div>
 
       <!-- Missing model state (shown when no GLB or load fails) -->
       <div id="muscle-missing-state" role="status" aria-live="polite" style="display:none">
         <div class="mmissing-icon" aria-hidden="true">💪</div>
-        <div class="mmissing-title">Real 3D Muscle Model Not Found</div>
-        <div class="mmissing-body">
+        <div class="mmissing-title" data-i18n="mmissing_title">Real 3D Muscle Model Not Found</div>
+        <div class="mmissing-body" data-i18n="mmissing_body">
           To enable the Muscular System, add a real human anatomy GLB file:
         </div>
         <code class="mmissing-path">public/models/human-muscles.glb</code>
-        <div class="mmissing-hint">
+        <div class="mmissing-hint" data-i18n="mmissing_hint">
           Sources: Sketchfab, TurboSquid, or any anatomically accurate human muscles 3D model in GLB/GLTF format.
         </div>
         <code class="mmissing-error" style="display:none;font-size:10px;color:#f87171;word-break:break-all;margin-top:6px;padding:6px;background:rgba(239,68,68,0.1);border-radius:4px;white-space:pre-wrap"></code>
         <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="missing-close-btn" onclick="retryMuscleLoad()" aria-label="Retry loading muscle model" style="background:rgba(59,130,246,0.2);border-color:#3b82f6;color:#93c5fd">↺ Retry</button>
+          <button class="missing-close-btn" onclick="retryMuscleLoad()" aria-label="Retry loading muscle model" style="background:rgba(59,130,246,0.2);border-color:#3b82f6;color:#93c5fd" data-i18n="btn_retry">↺ Retry</button>
           <button class="missing-close-btn" onclick="switchPanel('bones')" aria-label="Go back to skeleton">← Back to Skeleton</button>
         </div>
       </div>
     </div>
+
+    <!-- NERVE PANEL -->
+    <div id="nerve-panel-section" class="hidden-panel">
+      <!-- Nerve categories -->
+      <div id="nerve-category-tabs" class="section-tabs" role="tablist" aria-label="Nerve categories">
+        <button class="section-tab nerve-cat-tab active" onclick="filterNerveCategory('all',this)"              data-i18n="cat_all">All</button>
+        <button class="section-tab nerve-cat-tab" onclick="filterNerveCategory('brain',this)"                  data-i18n="ncat_brain">Brain</button>
+        <button class="section-tab nerve-cat-tab" onclick="filterNerveCategory('spinal_cord',this)"            data-i18n="ncat_spinal_cord">Spinal Cord</button>
+        <button class="section-tab nerve-cat-tab" onclick="filterNerveCategory('cranial_nerves',this)"         data-i18n="ncat_cranial_nerves">Cranial Nerves</button>
+        <button class="section-tab nerve-cat-tab" onclick="filterNerveCategory('peripheral_nerves',this)"      data-i18n="ncat_peripheral_nerves">Peripheral Nerves</button>
+      </div>
+
+      <!-- Independent layer toggles for nerves panel -->
+      <div id="nerve-display-mode-row" role="group" aria-label="Layer visibility">
+        <button id="btn-layer-nerves" class="display-mode-btn active" onclick="toggleNerveLayer()" aria-label="Toggle nerve layer" data-i18n="dm_nerves">🧠 Nerves</button>
+      </div>
+
+      <div id="nerve-list" role="list" aria-label="Nerve list"></div>
+
+      <!-- Missing nerve model state -->
+      <div id="nerve-missing-state" role="status" aria-live="polite" style="display:none">
+        <div class="mmissing-icon" aria-hidden="true">🧠</div>
+        <div class="mmissing-title" data-i18n="nmissing_title">Real 3D Nervous System Model Not Found</div>
+        <div class="mmissing-body" data-i18n="nmissing_body">
+          To enable the Nervous System, add a real human anatomy GLB file:
+        </div>
+        <code class="mmissing-path">public/models/human-nervous-system.glb</code>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="missing-close-btn" onclick="retryNerveLoad()" aria-label="Retry loading nerve model" style="background:rgba(59,130,246,0.2);border-color:#3b82f6;color:#93c5fd" data-i18n="btn_retry">↺ Retry</button>
+          <button class="missing-close-btn" onclick="switchPanel('bones')" aria-label="Go back to skeleton" data-i18n="btn_back_skeleton">← Back to Skeleton</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDIO PANEL -->
+    <div id="cardio-panel-section" class="hidden-panel">
+      <!-- Cardio categories -->
+      <div id="cardio-category-tabs" class="section-tabs" role="tablist" aria-label="Cardio categories">
+        <button class="section-tab cardio-cat-tab active" onclick="filterCardioCategory('all',this)" data-i18n="cat_all">All</button>
+        <button class="section-tab cardio-cat-tab" onclick="filterCardioCategory('heart',this)" data-i18n="ccat_heart">Heart</button>
+        <button class="section-tab cardio-cat-tab" onclick="filterCardioCategory('arteries',this)" data-i18n="ccat_arteries">Arteries</button>
+        <button class="section-tab cardio-cat-tab" onclick="filterCardioCategory('veins',this)" data-i18n="ccat_veins">Veins</button>
+      </div>
+
+      <div id="cardio-display-mode-row" role="group" aria-label="Layer visibility">
+        <button id="btn-layer-cardio" class="display-mode-btn active" onclick="toggleCardioLayer()" aria-label="Toggle cardio layer" data-i18n="dm_cardio">🫀 Cardio</button>
+      </div>
+
+      <div id="cardio-list" role="list" aria-label="Cardio list"></div>
+
+      <!-- Missing cardio model state -->
+      <div id="cardio-missing-state" role="status" aria-live="polite" style="display:none">
+        <div class="mmissing-icon" aria-hidden="true">🫀</div>
+        <div class="mmissing-title" data-i18n="cmissing_title">Real 3D Cardiovascular System Model Not Found</div>
+        <div class="mmissing-body" data-i18n="cmissing_body">
+          To enable the Cardiovascular System, add a real human anatomy GLB file:
+        </div>
+        <code class="mmissing-path">public/models/human-cardiovascular-system.glb</code>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="missing-close-btn" onclick="retryCardioLoad()" aria-label="Retry loading cardio model" style="background:rgba(59,130,246,0.2);border-color:#3b82f6;color:#93c5fd" data-i18n="btn_retry">↺ Retry</button>
+          <button class="missing-close-btn" onclick="switchPanel('bones')" aria-label="Go back to skeleton" data-i18n="btn_back_skeleton">← Back to Skeleton</button>
+        </div>
+      </div>
+    </div>
     <div id="stats-bar" aria-live="polite">
-      <div class="stat-chip"><div class="stat-num" id="total-bones">206</div><div class="stat-label">Bones</div></div>
-      <div class="stat-chip"><div class="stat-num" id="visible-count">206</div><div class="stat-label">Visible</div></div>
+      <div class="stat-chip"><div class="stat-num" id="total-bones" data-i18n="stat_bones">206</div><div class="stat-label">Bones</div></div>
+      <div class="stat-chip"><div class="stat-num" id="visible-count" data-i18n="stat_visible">206</div><div class="stat-label">Visible</div></div>
     </div>
     <!-- Statistics Dashboard -->
     <div id="stats-dashboard" aria-label="Statistics">
-      <div class="sd-row"><span>In model</span><span id="sd-in-model">—</span></div>
-      <div class="sd-row"><span>Selected</span><span id="sd-selected">—</span></div>
-      <div class="sd-row"><span>Quiz acc.</span><span id="sd-quiz">—</span></div>
-      <div class="sd-row"><span>Annotations</span><span id="sd-annotations">0</span></div>
+      <div class="sd-row"><span>In model</span><span id="sd-in-model" data-i18n="sd_in_model">—</span></div>
+      <div class="sd-row"><span>Selected</span><span id="sd-selected" data-i18n="sd_selected">—</span></div>
+      <div class="sd-row"><span>Quiz acc.</span><span id="sd-quiz" data-i18n="sd_quiz_acc">—</span></div>
+      <div class="sd-row"><span>Annotations</span><span id="sd-annotations" data-i18n="sd_annotations">0</span></div>
     </div>
   </div>
 
@@ -147,16 +218,17 @@
       <button class="layer-btn active" data-layer="skeleton"  onclick="setLayer('skeleton')"  aria-label="Skeleton layer"   aria-pressed="true">🦴 Skeleton</button>
       <button class="layer-btn"        data-layer="muscles"   onclick="setLayer('muscles')"   aria-label="Muscles layer"    aria-pressed="false">💪 Muscles</button>
       <button class="layer-btn"        data-layer="nerves"    onclick="setLayer('nerves')"    aria-label="Nerves layer"     aria-pressed="false">⚡ Nerves</button>
+      <button class="layer-btn"        data-layer="cardio"    onclick="setLayer('cardio')"    aria-label="Cardio layer"     aria-pressed="false">🫀 Cardio</button>
       <button class="layer-btn"        data-layer="vessels"   onclick="setLayer('vessels')"   aria-label="Vessels layer"    aria-pressed="false">🩸 Vessels</button>
       <button class="layer-btn"        data-layer="ligaments" onclick="setLayer('ligaments')" aria-label="Ligaments layer"  aria-pressed="false">🔗 Ligaments</button>
     </div>
 
     <!-- Cross-Section Panel -->
     <div id="cross-section-panel" role="region" aria-label="Cross section controls" style="display:none">
-      <div class="cs-header">✂ Cross Section</div>
+      <div class="cs-header" data-i18n="cs_header">✂ Cross Section</div>
       <div class="cs-row">
         <label class="cs-label">
-          <input type="checkbox" id="clip-sagittal-active" onchange="toggleClipPlane('sagittal',this.checked)" aria-label="Sagittal plane">
+          <input type="checkbox" id="clip-sagittal-active" onchange="toggleClipPlane('sagittal',this.checked)" aria-label="Sagittal plane" data-i18n="cs_sagittal">
           Sagittal
         </label>
         <input type="range" class="cs-slider" id="clip-sagittal-slider"
@@ -166,7 +238,7 @@
       </div>
       <div class="cs-row">
         <label class="cs-label">
-          <input type="checkbox" id="clip-transverse-active" onchange="toggleClipPlane('transverse',this.checked)" aria-label="Transverse plane">
+          <input type="checkbox" id="clip-transverse-active" onchange="toggleClipPlane('transverse',this.checked)" aria-label="Transverse plane" data-i18n="cs_transverse">
           Transverse
         </label>
         <input type="range" class="cs-slider" id="clip-transverse-slider"
@@ -176,7 +248,7 @@
       </div>
       <div class="cs-row">
         <label class="cs-label">
-          <input type="checkbox" id="clip-coronal-active" onchange="toggleClipPlane('coronal',this.checked)" aria-label="Coronal plane">
+          <input type="checkbox" id="clip-coronal-active" onchange="toggleClipPlane('coronal',this.checked)" aria-label="Coronal plane" data-i18n="cs_coronal">
           Coronal
         </label>
         <input type="range" class="cs-slider" id="clip-coronal-slider"
@@ -184,7 +256,7 @@
           oninput="updateClipValue('coronal',this.value)" aria-label="Coronal slice position">
         <span id="clip-coronal-pct" class="cs-pct">100%</span>
       </div>
-      <button class="view-btn" onclick="resetSection()" style="margin-top:4px;width:100%;font-size:11px" aria-label="Reset all clipping planes">Reset All</button>
+      <button class="view-btn" onclick="resetSection()" style="margin-top:4px;width:100%;font-size:11px" aria-label="Reset all clipping planes" data-i18n="btn_reset_all">Reset All</button>
     </div>
 
     <!-- Layer placeholder / muscle-missing notification -->
@@ -193,7 +265,7 @@
       <span><strong class="layer-ph-name">Layer</strong> model not added yet.</span>
     </div>
 
-    <!-- Opacity sliders (shown when muscles panel is active and model loaded) -->
+    <!-- Opacity sliders — always visible for all active layers -->
     <div id="layer-opacity-panel" style="display:none" role="group" aria-label="Layer opacity controls">
       <div class="opacity-row">
         <span class="opacity-label">🦴</span>
@@ -209,6 +281,20 @@
           oninput="setMuscleOpacity(this.value)" aria-label="Muscle opacity">
         <span id="muscle-opacity-label" class="opacity-pct">88%</span>
       </div>
+      <div class="opacity-row" id="nerve-opacity-row" style="display:none">
+        <span class="opacity-label">🧠</span>
+        <input type="range" class="opacity-slider" id="nerve-opacity-slider"
+          min="0.05" max="1" step="0.05" value="0.85"
+          oninput="setNerveOpacity(this.value)" aria-label="Nerve opacity">
+        <span id="nerve-opacity-label" class="opacity-pct">85%</span>
+      </div>
+      <div class="opacity-row" id="cardio-opacity-row" style="display:none">
+        <span class="opacity-label">🫀</span>
+        <input type="range" class="opacity-slider" id="cardio-opacity-slider"
+          min="0.05" max="1" step="0.05" value="1"
+          oninput="setCardioOpacity(this.value)" aria-label="Cardio opacity">
+        <span id="cardio-opacity-label" class="opacity-pct">100%</span>
+      </div>
     </div>
 
     <!-- Measure overlay -->
@@ -221,13 +307,13 @@
 
     <!-- Systems panel (learn mode) -->
     <div id="systems-panel" role="group" aria-label="Anatomy systems">
-      <button class="sys-btn active" data-system="axial"         onclick="applySystem('axial')">Axial</button>
-      <button class="sys-btn"        data-system="appendicular"  onclick="applySystem('appendicular')">Appendicular</button>
-      <button class="sys-btn"        data-system="skull"         onclick="applySystem('skull')">Skull</button>
-      <button class="sys-btn"        data-system="spine"         onclick="applySystem('spine')">Spine</button>
-      <button class="sys-btn"        data-system="thorax"        onclick="applySystem('thorax')">Thorax</button>
-      <button class="sys-btn"        data-system="upper"         onclick="applySystem('upper')">Upper Limb</button>
-      <button class="sys-btn"        data-system="lower"         onclick="applySystem('lower')">Lower Limb</button>
+      <button class="sys-btn active" data-system="axial"         onclick="applySystem('axial')" data-i18n="sys_axial">Axial</button>
+      <button class="sys-btn"        data-system="appendicular"  onclick="applySystem('appendicular')" data-i18n="sys_appendicular">Appendicular</button>
+      <button class="sys-btn"        data-system="skull"         onclick="applySystem('skull')" data-i18n="cat_skull">Skull</button>
+      <button class="sys-btn"        data-system="spine"         onclick="applySystem('spine')" data-i18n="cat_vertebral">Spine</button>
+      <button class="sys-btn"        data-system="thorax"        onclick="applySystem('thorax')" data-i18n="cat_thorax">Thorax</button>
+      <button class="sys-btn"        data-system="upper"         onclick="applySystem('upper')" data-i18n="cat_upper">Upper Limb</button>
+      <button class="sys-btn"        data-system="lower"         onclick="applySystem('lower')" data-i18n="cat_lower">Lower Limb</button>
     </div>
 
     <!-- Tooltip -->
@@ -240,26 +326,26 @@
 
     <!-- Camera view controls (7 presets + reset) -->
     <div id="view-controls" role="group" aria-label="Camera views">
-      <button class="view-btn" onclick="setCameraView('front')"     aria-label="Front view">Front</button>
-      <button class="view-btn" onclick="setCameraView('back')"      aria-label="Back view">Back</button>
-      <button class="view-btn" onclick="setCameraView('left')"      aria-label="Left view">Left</button>
-      <button class="view-btn" onclick="setCameraView('right')"     aria-label="Right view">Right</button>
-      <button class="view-btn" onclick="setCameraView('top')"       aria-label="Top view">Top</button>
-      <button class="view-btn" onclick="setCameraView('bottom')"    aria-label="Bottom view">Bottom</button>
-      <button class="view-btn" onclick="setCameraView('isometric')" aria-label="Isometric view">ISO</button>
-      <button class="view-btn" onclick="resetCamera()" aria-label="Reset camera" style="background:var(--accent);color:#fff;border-color:var(--accent)">Reset</button>
+      <button class="view-btn" onclick="setCameraView('front')"     aria-label="Front view" data-i18n="view_front">Front</button>
+      <button class="view-btn" onclick="setCameraView('back')"      aria-label="Back view" data-i18n="view_back">Back</button>
+      <button class="view-btn" onclick="setCameraView('left')"      aria-label="Left view" data-i18n="view_left">Left</button>
+      <button class="view-btn" onclick="setCameraView('right')"     aria-label="Right view" data-i18n="view_right">Right</button>
+      <button class="view-btn" onclick="setCameraView('top')"       aria-label="Top view" data-i18n="view_top">Top</button>
+      <button class="view-btn" onclick="setCameraView('bottom')"    aria-label="Bottom view" data-i18n="view_bottom">Bottom</button>
+      <button class="view-btn" onclick="setCameraView('isometric')" aria-label="Isometric view" data-i18n="view_iso">ISO</button>
+      <button class="view-btn" onclick="resetCamera()" aria-label="Reset camera" style="background:var(--accent);color:#fff;border-color:var(--accent)" data-i18n="view_reset">Reset</button>
     </div>
   </div>
 
   <!-- RIGHT PANEL -->
-  <div id="panel-right" role="complementary" aria-label="Bone details">
+  <div id="panel-right" role="complementary" aria-label="Bone details" data-i18n="panel_bone_details">
     <div class="panel-header">
       Bone Details
       <button class="close-panel-btn" onclick="toggleSidebar('right')" aria-label="Close bone details">✕</button>
     </div>
 
     <!-- Bone detail -->
-    <div id="bone-detail" aria-live="polite">
+    <div id="bone-detail" aria-live="polite" data-i18n="ph_select_bone">
       <div class="detail-placeholder">
         <span class="icon">🔬</span>
         Select any structure to view<br>anatomical details
@@ -269,47 +355,90 @@
     <!-- Muscle detail -->
     <div id="muscle-detail" aria-live="polite" style="display:none"></div>
 
+    <!-- Nerve detail -->
+    <div id="nerve-detail" class="os-bone-detail" aria-live="polite" style="display:none">
+      <h2 id="nd-title" class="os-title"></h2>
+      <div id="nd-latin" class="os-subtitle"></div>
+      <div class="os-info-section">
+        <h3 data-i18n="info_desc">Description</h3>
+        <p id="nd-desc"></p>
+      </div>
+      <div class="os-info-section">
+        <h3 data-i18n="info_func">Function</h3>
+        <p id="nd-func"></p>
+      </div>
+      <div class="os-info-section">
+        <h3 data-i18n="info_clin">Clinical Notes</h3>
+        <p id="nd-clin"></p>
+      </div>
+    </div>
+
+    <!-- Cardio detail -->
+    <div id="cardio-detail" class="os-bone-detail" aria-live="polite" style="display:none">
+      <h2 id="cd-title" class="os-title"></h2>
+      <div id="cd-latin" class="os-subtitle"></div>
+      <div class="os-info-section">
+        <h3 data-i18n="info_desc">Description</h3>
+        <p id="cd-desc"></p>
+      </div>
+      <div class="os-info-section">
+        <h3 data-i18n="info_func">Function</h3>
+        <p id="cd-func"></p>
+      </div>
+      <div class="os-info-section">
+        <h3 data-i18n="info_clin">Clinical Notes</h3>
+        <p id="cd-clin"></p>
+      </div>
+    </div>
+
     <!-- Quiz panel -->
     <div id="quiz-panel" role="region" aria-label="Anatomy quiz">
       <div class="quiz-score-wrap">
         <div class="quiz-score-bar">
-          <div class="stat-chip"><div class="stat-num" id="quiz-score" style="color:var(--correct)">0</div><div class="stat-label">Score</div></div>
-          <div class="stat-chip"><div class="stat-num" id="quiz-total" style="color:var(--text2)">0</div><div class="stat-label">Total</div></div>
+          <div class="stat-chip"><div class="stat-num" id="quiz-score" style="color:var(--correct)" data-i18n="quiz_score">0</div><div class="stat-label">Score</div></div>
+          <div class="stat-chip"><div class="stat-num" id="quiz-total" style="color:var(--text2)" data-i18n="quiz_total">0</div><div class="stat-label">Total</div></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <button class="section-tab quiz-mode-tab active" style="flex:1;text-align:center;font-size:11px" onclick="setQuizMode('bones',this)" aria-label="Bones mode" data-i18n="tab_skeleton">🦴 Bones</button>
+          <button class="section-tab quiz-mode-tab"        style="flex:1;text-align:center;font-size:11px" onclick="setQuizMode('muscles',this)" aria-label="Muscles mode" data-i18n="tab_muscles">💪 Muscles</button>
+          <button class="section-tab quiz-mode-tab"        style="flex:1;text-align:center;font-size:11px" onclick="setQuizMode('nerves',this)" aria-label="Nerves mode" data-i18n="tab_nerves">🧠 Nerves</button>
+          <button class="section-tab quiz-mode-tab"        style="flex:1;text-align:center;font-size:11px" onclick="setQuizMode('cardio',this)" aria-label="Cardio mode" data-i18n="tab_cardio">🫀 Cardio</button>
+          <button class="section-tab quiz-mode-tab"        style="flex:1;text-align:center;font-size:11px" onclick="setQuizMode('mixed',this)" aria-label="Mixed mode" data-i18n="dm_combined">⚕ Mixed</button>
         </div>
         <div style="display:flex;gap:6px">
-          <button class="section-tab active" style="flex:1;text-align:center" onclick="setQuizLevel('beginner',this)"     aria-label="Beginner">Beginner</button>
-          <button class="section-tab"        style="flex:1;text-align:center" onclick="setQuizLevel('intermediate',this)" aria-label="Intermediate">Med</button>
-          <button class="section-tab"        style="flex:1;text-align:center" onclick="setQuizLevel('advanced',this)"     aria-label="Advanced">Hard</button>
+          <button class="section-tab active" style="flex:1;text-align:center" onclick="setQuizLevel('beginner',this)"     aria-label="Beginner" data-i18n="quiz_beg">Beginner</button>
+          <button class="section-tab"        style="flex:1;text-align:center" onclick="setQuizLevel('intermediate',this)" aria-label="Intermediate" data-i18n="quiz_med">Med</button>
+          <button class="section-tab"        style="flex:1;text-align:center" onclick="setQuizLevel('advanced',this)"     aria-label="Advanced" data-i18n="quiz_hard">Hard</button>
         </div>
         <!-- Timer row -->
         <div class="quiz-controls-row">
-          <button class="section-tab" id="btn-timer" onclick="toggleQuizTimer()" aria-label="Toggle quiz timer" aria-pressed="false">⏱ Timer</button>
+          <button class="section-tab" id="btn-timer" onclick="toggleQuizTimer()" aria-label="Toggle quiz timer" aria-pressed="false" data-i18n="quiz_timer">⏱ Timer</button>
           <div id="quiz-timer-wrap" style="display:none" aria-live="polite">
             <span id="quiz-timer-display" class="timer-num">30</span><span class="timer-s">s</span>
           </div>
-          <button class="section-tab" onclick="showFinalScore()" aria-label="End quiz" style="margin-left:auto;background:rgba(239,68,68,0.15);color:var(--wrong);border-color:rgba(239,68,68,0.3)">🏁 End</button>
+          <button class="section-tab" onclick="showFinalScore()" aria-label="End quiz" style="margin-left:auto;background:rgba(239,68,68,0.15);color:var(--wrong);border-color:rgba(239,68,68,0.3)" data-i18n="quiz_end">🏁 End</button>
         </div>
       </div>
-      <div class="quiz-question" id="quiz-question" aria-live="polite">Identify the structure:<span>Loading...</span></div>
+      <div class="quiz-question" id="quiz-question" aria-live="polite" data-i18n="quiz_identify">Identify the structure:<span>Loading...</span></div>
       <div class="quiz-feedback" id="quiz-feedback" role="alert"></div>
-      <button class="action-btn" onclick="nextQuizQuestion()" aria-label="Skip to next question">Skip Question ⏭</button>
+      <button class="action-btn" onclick="nextQuizQuestion()" aria-label="Skip to next question" data-i18n="quiz_skip">Skip Question ⏭</button>
     </div>
 
     <!-- Quiz final score screen -->
     <div id="quiz-final" role="region" aria-label="Quiz results" style="display:none">
       <div class="quiz-final-icon">🎓</div>
-      <div class="quiz-final-title">Quiz Complete!</div>
+      <div class="quiz-final-title" data-i18n="quiz_complete">Quiz Complete!</div>
       <div class="quiz-final-stats">
-        <div class="stat-chip"><div class="stat-num" id="qf-score-display">0/0</div><div class="stat-label">Score</div></div>
-        <div class="stat-chip"><div class="stat-num" id="qf-pct">0%</div><div class="stat-label">Accuracy</div></div>
+        <div class="stat-chip"><div class="stat-num" id="qf-score-display" data-i18n="quiz_score">0/0</div><div class="stat-label">Score</div></div>
+        <div class="stat-chip"><div class="stat-num" id="qf-pct" data-i18n="quiz_acc">0%</div><div class="stat-label">Accuracy</div></div>
       </div>
       <div class="qf-grade" id="qf-grade">—</div>
-      <button class="action-btn" style="margin-top:16px" onclick="restartQuiz()" aria-label="Play again">🔄 Play Again</button>
+      <button class="action-btn" style="margin-top:16px" onclick="restartQuiz()" aria-label="Play again" data-i18n="quiz_play_again">🔄 Play Again</button>
       <button class="action-btn" style="background:rgba(255,255,255,0.05);color:var(--text);margin-top:8px" onclick="setMode('normal')" aria-label="Exit quiz">← Exit Quiz</button>
     </div>
 
     <!-- Annotation panel -->
-    <div id="annotation-panel" role="region" aria-label="Annotations" style="display:none">
+    <div id="annotation-panel" role="region" aria-label="Annotations" style="display:none" data-i18n="ann_header">
       <div style="padding:14px 16px 8px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text)">
         📌 Annotations
         <span style="font-size:11px;color:var(--text2);font-weight:400;display:block;margin-top:2px">Click bones in 3D to add pins</span>
@@ -321,11 +450,11 @@
 
 <!-- Annotation form (fixed overlay, appears near click point) -->
 <div id="annotation-form" role="dialog" aria-label="Add annotation" aria-modal="true" style="display:none">
-  <div class="ann-form-header">📌 Add Annotation</div>
+  <div class="ann-form-header" data-i18n="ann_title">📌 Add Annotation</div>
   <input  id="ann-title-input" type="text"  placeholder="Title (required)" maxlength="60"
-    onkeydown="if(event.key==='Enter')window.saveAnnotationForm();if(event.key==='Escape')window.cancelAnnotationForm()">
+    onkeydown="if(event.key==='Enter')window.saveAnnotationForm();if(event.key==='Escape')window.cancelAnnotationForm()" data-i18n="ann_ph_title">
   <textarea id="ann-note-input" placeholder="Clinical note (optional)" rows="3" maxlength="300"
-    onkeydown="if(event.key==='Escape')window.cancelAnnotationForm()"></textarea>
+    onkeydown="if(event.key==='Escape')window.cancelAnnotationForm()" data-i18n="ann_ph_note"></textarea>
   <div class="ann-form-actions">
     <button class="action-btn" onclick="saveAnnotationForm()"   style="flex:1">Save 💾</button>
     <button class="action-btn" onclick="cancelAnnotationForm()" style="background:rgba(255,255,255,0.05);color:var(--text);flex:1">Cancel</button>
@@ -334,20 +463,20 @@
 
 <!-- Presentation Mode Overlay (fixed, full screen) -->
 <div id="presentation-overlay" role="region" aria-label="Presentation mode" style="display:none">
-  <button id="pres-exit-btn" onclick="togglePresentation()" aria-label="Exit presentation mode">✕ Exit Presentation</button>
+  <button id="pres-exit-btn" onclick="togglePresentation()" aria-label="Exit presentation mode" data-i18n="pres_exit">✕ Exit Presentation</button>
   <div id="pres-bone-info">
     <div id="pres-name">OsteoVis</div>
-    <div id="pres-latin">Click any bone to begin</div>
+    <div id="pres-latin" data-i18n="pres_hint">Click any bone to begin</div>
     <div id="pres-desc"></div>
   </div>
 </div>
 
 <!-- Mobile bottom navigation -->
 <div id="mobile-nav" role="navigation" aria-label="Mobile mode navigation">
-  <button class="mobile-nav-btn active" id="mnav-normal"  onclick="setMode('normal')"  aria-label="Explore mode"><span class="nav-icon" aria-hidden="true">🔍</span>Explore</button>
-  <button class="mobile-nav-btn"        id="mnav-explode" onclick="setMode('explode')" aria-label="Explode view"><span class="nav-icon" aria-hidden="true">💥</span>Explode</button>
-  <button class="mobile-nav-btn"        id="mnav-learn"   onclick="setMode('learn')"   aria-label="Systems mode"><span class="nav-icon" aria-hidden="true">🫀</span>Systems</button>
-  <button class="mobile-nav-btn"        id="mnav-quiz"    onclick="setMode('quiz')"    aria-label="Quiz mode"><span class="nav-icon" aria-hidden="true">🧠</span>Quiz</button>
+  <button class="mobile-nav-btn active" id="mnav-normal"  onclick="setMode('normal')"  aria-label="Explore mode" data-i18n="mode_explore"><span class="nav-icon" aria-hidden="true">🔍</span>Explore</button>
+  <button class="mobile-nav-btn"        id="mnav-explode" onclick="setMode('explode')" aria-label="Explode view" data-i18n="mode_explode"><span class="nav-icon" aria-hidden="true">💥</span>Explode</button>
+  <button class="mobile-nav-btn"        id="mnav-learn"   onclick="setMode('learn')"   aria-label="Systems mode" data-i18n="mode_learn"><span class="nav-icon" aria-hidden="true">🫀</span>Systems</button>
+  <button class="mobile-nav-btn"        id="mnav-quiz"    onclick="setMode('quiz')"    aria-label="Quiz mode" data-i18n="mode_quiz"><span class="nav-icon" aria-hidden="true">🧠</span>Quiz</button>
 </div>
 
 <script type="module" src="/src/js/main.js"></script>

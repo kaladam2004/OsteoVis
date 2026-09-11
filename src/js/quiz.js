@@ -1,7 +1,13 @@
-
 import { state } from './state.js';
 import { ANATOMY_DB } from './data.js';
-import { resetMats } from './ui.js';
+import { MUSCLE_DB } from './muscles_data.js';
+import { NERVE_DB } from './nerve_data.js';
+import { CARDIO_DB } from './cardio_data.js';
+import { resetMats, updateStats } from './ui.js';
+import { t, tObj } from './i18n.js';
+
+// Quiz mode: 'bones' | 'muscles' | 'nerves' | 'mixed'
+let quizMode = 'bones';
 
 let quizScore = 0, quizTotal = 0, quizTarget = null, quizLevel = 'beginner';
 let timerEnabled = false, quizCountdown = 30, _quizTimer = null;
@@ -19,6 +25,21 @@ const quizPools = {
   advanced:     ['sphenoid','ethmoid','vomer','malleus_r','incus_r','stapes_r','hyoid','c2','c3','t4','t5','l3'],
 };
 
+// Nerve quiz pools (all levels use all nerves since fewer structures)
+const nerveQuizPool = NERVE_DB.map(n => n.id);
+
+// Cardio quiz pool
+const cardioQuizPool = CARDIO_DB.map(c => c.id);
+
+// Mixed pool dynamically generated
+function getMixedPool() {
+  const bones   = quizPools['beginner'];
+  const muscles = MUSCLE_DB.slice(0, 10).map(m => m.id);
+  const nerves  = nerveQuizPool;
+  const cardio  = cardioQuizPool;
+  return [...bones, ...muscles, ...nerves, ...cardio];
+}
+
 // ─── Timer ────────────────────────────────────────────────────────────────────
 
 function _startTimer() {
@@ -34,7 +55,7 @@ function _startTimer() {
       quizTotal++;
       document.getElementById('quiz-total').textContent = quizTotal;
       const fb = document.getElementById('quiz-feedback');
-      fb.textContent = "⏱ Time's up!";
+      fb.textContent = "⏱ " + (t('quiz_times_up') || "Time's up!");
       fb.className = 'quiz-feedback wrong';
       fb.style.display = 'block';
       _saveScore();
@@ -103,7 +124,7 @@ export function restartQuiz() {
   if (timerEnabled) _startTimer();
 }
 
-// ─── Core quiz logic (unchanged) ─────────────────────────────────────────────
+// ─── Core quiz logic ─────────────────────────────────────────────────────────
 
 function setQuizLevel(level, btn) {
   quizLevel = level;
@@ -119,17 +140,41 @@ function setQuizLevel(level, btn) {
 
 function nextQuizQuestion() {
   clearInterval(_quizTimer);
-  const allPool = quizPools[quizLevel];
-  const pool = allPool.filter(id => state.boneMeshes[id]);
+
+  // Build the active pool based on quiz mode
+  let allPool;
+  if (quizMode === 'nerves') {
+    allPool = nerveQuizPool;
+  } else if (quizMode === 'cardio') {
+    allPool = cardioQuizPool;
+  } else if (quizMode === 'mixed') {
+    allPool = getMixedPool();
+  } else {
+    allPool = quizPools[quizLevel] || quizPools.beginner;
+  }
+
+  const pool = allPool.filter(id =>
+    state.boneMeshes[id] || state.muscleMeshes?.[id] || state.nerveMeshes?.[id] || state.cardioMeshes?.[id] ||
+    NERVE_DB.find(n => n.id === id)  // nerves always selectable from list even without 3D model
+  );
   if (!pool.length) {
     quizTarget = null;
-    document.getElementById('quiz-question').innerHTML = `Identify the structure:<span>Load a model first</span>`;
+    document.getElementById('quiz-question').innerHTML = `${t('quiz_identify')}<span>${t('load_model_first') || 'Load a model first'}</span>`;
     document.getElementById('quiz-feedback').style.display = 'none';
     return;
   }
   quizTarget = pool[Math.floor(Math.random() * pool.length)];
-  const data = ANATOMY_DB.find(b => b.id === quizTarget);
-  document.getElementById('quiz-question').innerHTML = `Identify the structure:<span>${data ? data.name : quizTarget}</span>`;
+  const currentData = ANATOMY_DB.find(b => b.id === quizTarget) ||
+                      MUSCLE_DB.find(m => m.id === quizTarget) ||
+                      NERVE_DB.find(n => n.id === quizTarget);
+  const objName = currentData ? (tObj(currentData.name) || currentData.name) : quizTarget;
+
+  const hasLatin = currentData?.latinName;
+  if (hasLatin) {
+    document.getElementById('quiz-question').innerHTML = `${t('quiz_identify')} <strong>${objName}</strong> <br><span style="font-size:12px;opacity:0.7">(${currentData.latinName})</span>`;
+  } else {
+    document.getElementById('quiz-question').innerHTML = `${t('quiz_identify')} <strong>${objName}</strong>`;
+  }
   document.getElementById('quiz-feedback').style.display = 'none';
   resetMats();
   if (timerEnabled) _startTimer();
@@ -140,17 +185,24 @@ function checkQuizAnswer(id) {
   clearInterval(_quizTimer);
   quizTotal++;
   const correct = id === quizTarget;
-  if (correct) quizScore++;
+  if (correct) {
+    quizScore++;
+    updateStats?.();
+  }
   document.getElementById('quiz-score').textContent = quizScore;
   document.getElementById('quiz-total').textContent = quizTotal;
   _saveScore();
 
-  const fb = document.getElementById('quiz-feedback');
-  fb.textContent = correct ? '✓ Correct!' : `✗ Incorrect. That was ${ANATOMY_DB.find(b => b.id === id)?.name}.`;
+  const targetData = ANATOMY_DB.find(b => b.id === id) ||
+                     MUSCLE_DB.find(m => m.id === id) ||
+                     NERVE_DB.find(n => n.id === id);
+  const targetName = targetData ? (tObj(targetData.name) || targetData.name) : id;
+
+  fb.textContent = correct ? `✓ ${t('quiz_correct') || 'Correct!'}` : `✗ ${t('quiz_incorrect') || 'Incorrect. That was'} ${targetName}.`;
   fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'wrong');
   fb.style.display = 'block';
 
-  const mesh = state.boneMeshes[quizTarget];
+  const mesh = state.boneMeshes[quizTarget] || state.muscleMeshes?.[quizTarget] || state.nerveMeshes?.[quizTarget];
   if (mesh) {
     mesh.material.color.setHex(correct ? 0x22c55e : 0xef4444);
     mesh.material.emissive.setHex(correct ? 0x22c55e : 0xef4444);
@@ -160,4 +212,15 @@ function checkQuizAnswer(id) {
   setTimeout(() => { if (state.currentMode === 'quiz') nextQuizQuestion(); }, 2000);
 }
 
-export { setQuizLevel, nextQuizQuestion, checkQuizAnswer };
+function setQuizMode(mode, btn) {
+  quizMode = mode;
+  document.querySelectorAll('.quiz-mode-tab').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+  quizScore = 0; quizTotal = 0;
+  document.getElementById('quiz-score').textContent = '0';
+  document.getElementById('quiz-total').textContent = '0';
+  _saveScore();
+  nextQuizQuestion();
+}
+
+export { setQuizLevel, nextQuizQuestion, checkQuizAnswer, setQuizMode };

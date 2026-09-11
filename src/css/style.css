@@ -671,6 +671,52 @@
     width: 13px;
     height: 13px;
   }
+
+  /* Tooltips */
+  #tooltip {
+    position: absolute;
+    background: var(--surface2);
+    color: var(--text);
+    padding: 15px;
+    border-radius: 12px;
+    pointer-events: none;
+    display: none;
+    z-index: 1000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    max-width: 280px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  #tooltip h3 { margin: 0 0 5px; font-size: 16px; color: var(--accent); }
+  #tooltip .latin { font-style: italic; color: var(--text2); font-size: 13px; margin-bottom: 8px; }
+  #tooltip .category { font-size: 11px; text-transform: uppercase; color: var(--accent2); margin-bottom: 5px; font-weight: 600; }
+  #tooltip .desc { font-size: 13px; line-height: 1.4; color: var(--text2); }
+
+  /* Language Switcher */
+  .lang-switch {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+    margin-right: 10px;
+  }
+  .lang-switch:hover, .lang-switch:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  .lang-switch option {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  /* Animations */
   .cs-slider {
     flex: 1;
     accent-color: var(--accent);

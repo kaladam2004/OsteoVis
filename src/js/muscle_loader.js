@@ -9,15 +9,17 @@ const MUSCLE_GLB_PATH = '/models/human-muscles.glb';
 
 function createMuscleMat() {
   return new THREE.MeshPhysicalMaterial({
-    color: 0xc0392b,
-    roughness: 0.55,
-    metalness: 0.0,
-    clearcoat: 0.25,
-    clearcoatRoughness: 0.4,
+    color: 0x9b1b1b,       // deeper red
+    roughness: 0.6,
+    metalness: 0.05,
+    clearcoat: 0.5,        // wet look
+    clearcoatRoughness: 0.3,
+    sheen: 0.8,
+    sheenColor: 0xd84b4b,
     transparent: true,
     opacity: state.muscleOpacity,
-    depthWrite: false,
-    side: THREE.FrontSide,
+    depthWrite: true,      // needed for proper physical rendering
+    side: THREE.DoubleSide,
   });
 }
 

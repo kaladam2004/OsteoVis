@@ -6,11 +6,14 @@ import { ANATOMY_DB } from './data.js';
 
 // Premium Medical Bone Material
 const boneMat = new THREE.MeshPhysicalMaterial({
-  color: 0xE8DEC7,
-  roughness: 0.65,
-  metalness: 0.05,
-  clearcoat: 0.2,
-  clearcoatRoughness: 0.5,
+  color: 0xEFEAE1,
+  roughness: 0.45,
+  metalness: 0.0,
+  clearcoat: 0.3,
+  clearcoatRoughness: 0.4,
+  transmission: 0.1, // gives subsurface scattering feel
+  thickness: 1.5,
+  ior: 1.45,
 });
 
 const shaderModifier = (shader) => {

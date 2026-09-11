@@ -4,6 +4,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 export const canvas = document.getElementById('three-canvas');
 export const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, logarithmicDepthBuffer: true, preserveDrawingBuffer: true });
@@ -17,6 +18,13 @@ renderer.toneMappingExposure = 1.1;
 renderer.localClippingEnabled = true;
 
 export const scene = new THREE.Scene();
+
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+pmremGenerator.compileEquirectangularShader();
+scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+// Ensure no harsh background
+scene.background = null;
+
 export const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
 camera.position.set(0, 0, 4.5);
 
