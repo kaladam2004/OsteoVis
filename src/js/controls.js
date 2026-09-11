@@ -36,12 +36,14 @@ export class CameraController {
     el.addEventListener('contextmenu', e=>e.preventDefault());
     let lastTouchDist = 0;
     el.addEventListener('touchstart', e => {
+      e.preventDefault();
       if(e.touches.length === 1) { this.isDragging=true; this.isRightDrag=false; this.lastX=e.touches[0].clientX; this.lastY=e.touches[0].clientY; }
       else if(e.touches.length === 2) { 
         lastTouchDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
       }
     }, {passive:false});
     el.addEventListener('touchmove', e => {
+      e.preventDefault();
       if(e.touches.length === 1 && this.isDragging) {
         const dx = e.touches[0].clientX - this.lastX, dy = e.touches[0].clientY - this.lastY;
         this.lastX = e.touches[0].clientX; this.lastY = e.touches[0].clientY;
