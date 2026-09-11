@@ -113,6 +113,38 @@ export function applyTeacherMode(id) {
   });
 }
 
+export function focusCamera(worldPos, maxDim = 0.5) {
+  // Tween the target
+  new TWEEN.Tween(window.appControls.target)
+    .to({ x: worldPos.x, y: worldPos.y, z: worldPos.z }, 800)
+    .easing(TWEEN.Easing.Cubic.Out).start();
+
+  const camWorld = camera.position.clone();
+  const dirWorld = new THREE.Vector3().subVectors(camWorld, worldPos).normalize();
+  
+  // Set a good viewing distance based on the object's size
+  const dist = Math.max(0.4, Math.min(2.5, maxDim * 2.5));
+  const targetCamPos = worldPos.clone().add(dirWorld.multiplyScalar(dist));
+  
+  // Compute spherical coordinates relative to the new target
+  const targetSpherical = new THREE.Spherical().setFromVector3(targetCamPos.clone().sub(worldPos));
+  
+  const startSph = {
+    radius: window.appControls.spherical.radius,
+    phi: window.appControls.spherical.phi,
+    theta: window.appControls.spherical.theta
+  };
+
+  new TWEEN.Tween(startSph)
+    .to({ radius: targetSpherical.radius, phi: targetSpherical.phi, theta: targetSpherical.theta }, 800)
+    .onUpdate(function(obj) {
+      window.appControls.spherical.radius = obj.radius;
+      window.appControls.spherical.phi = obj.phi;
+      window.appControls.spherical.theta = obj.theta;
+    })
+    .easing(TWEEN.Easing.Cubic.Out).start();
+}
+
 // ─── X-Ray mode ───────────────────────────────────────────────────────────────
 
 function _applyXRay() {
@@ -499,13 +531,13 @@ export function selectBone(id) {
   if (state.labels[id]) state.labels[id].classList.add('selected');
 
   const data = ANATOMY_DB.find(b => b.id === id);
-  if (data && !state.isAnnotating) document.getElementById('bone-detail').innerHTML = buildDetailHTML(data);
+  if (data && !state.isAnnotating) {
+    const bd = document.getElementById('bone-detail');
+    if (bd) bd.innerHTML = buildDetailHTML(data);
+  }
 
   const worldPos = new THREE.Vector3();
   state.selectedBone.getWorldPosition(worldPos);
-  new TWEEN.Tween(window.appControls.target)
-    .to({ x: worldPos.x, y: worldPos.y, z: worldPos.z }, 800)
-    .easing(TWEEN.Easing.Cubic.Out).start();
 
   const camWorld    = camera.position.clone();
   const dirWorld    = new THREE.Vector3().subVectors(camWorld, worldPos).normalize();
@@ -513,6 +545,11 @@ export function selectBone(id) {
   const sz = new THREE.Vector3();
   state.selectedBone.geometry.boundingBox.getSize(sz);
   const maxDim     = Math.max(sz.x, sz.y, sz.z) * state.selectedBone.parent.scale.x;
+  
+  // Zoom camera
+  focusCamera(worldPos, maxDim);
+
+  // Pop-out effect
   const forwardDist = Math.max(0.12, Math.min(0.35, maxDim * 0.8));
   const targetWorldPos = worldPos.clone().add(dirWorld.multiplyScalar(forwardDist));
   const targetLocalPos = state.selectedBone.parent.worldToLocal(targetWorldPos);
@@ -560,8 +597,10 @@ export function deselectAll() {
     document.getElementById('btn-isolate')?.setAttribute('aria-pressed', 'false');
   }
   if (!state.isXRay) resetMats();
-  document.getElementById('bone-detail').innerHTML =
-    '<div class="detail-placeholder"><span class="icon">🔬</span>Select any structure to view<br>anatomical details</div>';
+  const bd = document.getElementById('bone-detail');
+  if (bd) {
+    bd.innerHTML = '<div class="detail-placeholder"><span class="icon">🔬</span>Select any structure to view<br>anatomical details</div>';
+  }
   savePrefs({ bone: null });
   updateURL({ bone: null });
   _updatePresentationOverlay();
@@ -634,7 +673,7 @@ export function doSearch(q) {
 
 // ─── Camera controls ──────────────────────────────────────────────────────────
 
-export function setCameraView(view) {
+export function setCameraView(view, immediate = false) {
   const presets = {
     front:     { radius: 4.5, phi: Math.PI / 2,       theta: 0 },
     back:      { radius: 4.5, phi: Math.PI / 2,       theta: Math.PI },
@@ -645,14 +684,45 @@ export function setCameraView(view) {
     isometric: { radius: 5.5, phi: Math.PI / 4,       theta: Math.PI / 4 },
   };
   const preset = presets[view] || presets.front;
-  new TWEEN.Tween(window.appControls.spherical)
-    .to(preset, 1000).easing(TWEEN.Easing.Cubic.Out).start();
+  
+  if (immediate) {
+    window.appControls.spherical.radius = preset.radius;
+    window.appControls.spherical.phi = preset.phi;
+    window.appControls.spherical.theta = preset.theta;
+    window.appControls.target.set(0, 0, 0);
+    savePrefs({ view });
+    updateURL({ view: view !== 'front' ? view : null });
+    return;
+  }
+  
+  const start = {
+    radius: window.appControls.spherical.radius,
+    phi: window.appControls.spherical.phi,
+    theta: window.appControls.spherical.theta
+  };
+
+  new TWEEN.Tween(start)
+    .to(preset, 1000)
+    .onUpdate(function(obj) {
+      window.appControls.spherical.radius = obj.radius;
+      window.appControls.spherical.phi = obj.phi;
+      window.appControls.spherical.theta = obj.theta;
+    })
+    .easing(TWEEN.Easing.Cubic.Out)
+    .start();
+
   new TWEEN.Tween(window.appControls.target)
-    .to({ x: 0, y: 0, z: 0 }, 1000).easing(TWEEN.Easing.Cubic.Out).start();
+    .to({ x: 0, y: 0, z: 0 }, 1000)
+    .easing(TWEEN.Easing.Cubic.Out)
+    .start();
+    
   savePrefs({ view });
   updateURL({ view: view !== 'front' ? view : null });
 }
 export function resetCamera() { setCameraView('front'); }
+
+window.setCameraView = setCameraView;
+window.resetCamera = resetCamera;
 
 // ─── Screenshot ───────────────────────────────────────────────────────────────
 
@@ -703,7 +773,8 @@ export function toggleRotate() {
 
 // ── Display Mode: skeleton | muscles | combined ───────────────────────────────
 export function setDisplayMode(mode) {
-  if (!state.muscleModelLoaded && mode !== 'skeleton') return;
+  // Allow 'none' even if muscles are not loaded, so we can hide skeleton for Nerves/Cardio
+  if (!state.muscleModelLoaded && mode !== 'skeleton' && mode !== 'none') return;
 
   state.displayMode = mode;
 
@@ -785,8 +856,17 @@ export function switchPanel(panel, eventDetail) {
     const missing = document.getElementById('muscle-missing-state');
     if (list)    list.style.display = '';
     if (missing) missing.style.display = 'none';
-    setDisplayMode('combined');
+    
+    // Show only muscles
+    setDisplayMode('muscles');
     buildMuscleList('all');
+    
+    // Hide nerves/cardio
+    state.nerveVisible = false;
+    if (state.nerveGroup) state.nerveGroup.visible = false;
+    state.cardioVisible = false;
+    if (state.cardioGroup) state.cardioGroup.visible = false;
+    
   } else if (panel === 'nerves') {
     nerveSection?.classList.remove('hidden-panel');
     swNerves?.classList.add('active');
@@ -795,6 +875,19 @@ export function switchPanel(panel, eventDetail) {
     else buildNerveList('all');
     const nerveOpacityRow = document.getElementById('nerve-opacity-row');
     if (nerveOpacityRow) nerveOpacityRow.style.display = 'flex';
+    
+    // Show nerves, hide others
+    setDisplayMode('none');
+    
+    // Fallback: manually hide skeleton if setDisplayMode returned early
+    state.skeletonVisible = false;
+    state.boneAllMeshes.forEach(m => { m.visible = false; });
+    
+    state.nerveVisible = true;
+    if (state.nerveGroup) state.nerveGroup.visible = true;
+    state.cardioVisible = false;
+    if (state.cardioGroup) state.cardioGroup.visible = false;
+
   } else if (panel === 'cardio') {
     cardioSection?.classList.remove('hidden-panel');
     swCardio?.classList.add('active');
@@ -803,6 +896,19 @@ export function switchPanel(panel, eventDetail) {
     else buildCardioList('all');
     const cardioOpacityRow = document.getElementById('cardio-opacity-row');
     if (cardioOpacityRow) cardioOpacityRow.style.display = 'flex';
+    
+    // Show cardio, hide others
+    setDisplayMode('none');
+    
+    // Fallback: manually hide skeleton if setDisplayMode returned early
+    state.skeletonVisible = false;
+    state.boneAllMeshes.forEach(m => { m.visible = false; });
+
+    state.cardioVisible = true;
+    if (state.cardioGroup) state.cardioGroup.visible = true;
+    state.nerveVisible = false;
+    if (state.nerveGroup) state.nerveGroup.visible = false;
+
   } else {
     // Default: bones
     muscleSection?.classList.add('hidden-panel');
@@ -817,7 +923,15 @@ export function switchPanel(panel, eventDetail) {
     document.querySelector('.layer-btn[data-layer="skeleton"]')?.classList.add('active');
     document.querySelector('.layer-btn[data-layer="muscles"]')?.classList.remove('active');
     if (searchInput) searchInput.placeholder = 'Search anatomy database…';
+    
     setDisplayMode('skeleton');
+    
+    // Hide nerves/cardio
+    state.nerveVisible = false;
+    if (state.nerveGroup) state.nerveGroup.visible = false;
+    state.cardioVisible = false;
+    if (state.cardioGroup) state.cardioGroup.visible = false;
+    
     _clearMuscleHighlights();
     _clearMuscleMeshHighlight();
     const md = document.getElementById('muscle-detail');
@@ -1078,9 +1192,12 @@ export function selectMuscle(id) {
     const worldPos = new THREE.Vector3();
     state.selectedMuscleMesh.getWorldPosition(worldPos);
     
-    new TWEEN.Tween(window.appControls.target)
-      .to({ x: worldPos.x, y: worldPos.y, z: worldPos.z }, 800)
-      .easing(TWEEN.Easing.Cubic.Out).start();
+    state.selectedMuscleMesh.geometry.computeBoundingBox();
+    const sz = new THREE.Vector3();
+    state.selectedMuscleMesh.geometry.boundingBox.getSize(sz);
+    const maxDim = Math.max(sz.x, sz.y, sz.z) * state.selectedMuscleMesh.parent.scale.x;
+    
+    focusCamera(worldPos, maxDim);
   }
 
   // ── List selection ───────────────────────────────────────────────────────────
@@ -1241,9 +1358,12 @@ export function selectNerve(id) {
       // Smooth camera focus
       const worldPos = new THREE.Vector3();
       primaryMesh.getWorldPosition(worldPos);
-      new TWEEN.Tween(window.appControls.target)
-        .to({ x: worldPos.x, y: worldPos.y, z: worldPos.z }, 800)
-        .easing(TWEEN.Easing.Cubic.Out).start();
+      primaryMesh.geometry.computeBoundingBox();
+      const sz = new THREE.Vector3();
+      primaryMesh.geometry.boundingBox.getSize(sz);
+      const maxDim = Math.max(sz.x, sz.y, sz.z) * primaryMesh.parent.scale.x;
+      
+      focusCamera(worldPos, maxDim);
     }
   }
 
@@ -1294,15 +1414,15 @@ function _buildNerveDetailHTML(nerve) {
       <span class="detail-cat-tag">${t('ncat_' + nerve.category) || nerve.category}</span>
     </div>
     <div class="detail-section">
-      <div class="detail-label">📝 ${t('label_description') || 'Description'}</div>
+      <div class="detail-label">${t('lbl_desc') || '📝 Description'}</div>
       <div class="detail-text">${desc}</div>
     </div>
     <div class="detail-section">
-      <div class="detail-label">⚡ ${t('label_function') || 'Function'}</div>
+      <div class="detail-label">${t('lbl_fn') || '⚡ Function'}</div>
       <div class="detail-text">${func}</div>
     </div>
     <div class="detail-section">
-      <div class="detail-label">🏥 ${t('label_clinical') || 'Clinical Notes'}</div>
+      <div class="detail-label">${t('lbl_clinic') || '🏥 Clinical Notes'}</div>
       <div class="detail-text">${clin}</div>
     </div>
     <div class="detail-actions" style="margin-top:20px;display:flex;gap:10px">
@@ -1417,9 +1537,14 @@ export function selectCardio(id) {
       });
       const worldPos = new THREE.Vector3();
       primaryMesh.getWorldPosition(worldPos);
-      new TWEEN.Tween(window.appControls.target)
-        .to({ x: worldPos.x, y: worldPos.y, z: worldPos.z }, 800)
-        .easing(TWEEN.Easing.Cubic.Out).start();
+      
+      // Calculate size for zoom
+      primaryMesh.geometry.computeBoundingBox();
+      const sz = new THREE.Vector3();
+      primaryMesh.geometry.boundingBox.getSize(sz);
+      const maxDim = Math.max(sz.x, sz.y, sz.z) * primaryMesh.parent.scale.x;
+      
+      focusCamera(worldPos, maxDim);
     }
   }
 
@@ -1471,15 +1596,15 @@ function _buildCardioDetailHTML(item) {
       <span class="detail-cat-tag">${t('ccat_' + item.category) || item.category}</span>
     </div>
     <div class="detail-section">
-      <div class="detail-label">📝 ${t('label_description') || 'Description'}</div>
+      <div class="detail-label">${t('lbl_desc') || '📝 Description'}</div>
       <div class="detail-text">${desc}</div>
     </div>
     <div class="detail-section">
-      <div class="detail-label">⚡ ${t('label_function') || 'Function'}</div>
+      <div class="detail-label">${t('lbl_fn') || '⚡ Function'}</div>
       <div class="detail-text">${func}</div>
     </div>
     <div class="detail-section">
-      <div class="detail-label">🏥 ${t('label_clinical') || 'Clinical Notes'}</div>
+      <div class="detail-label">${t('lbl_clinic') || '🏥 Clinical Notes'}</div>
       <div class="detail-text">${clin}</div>
     </div>
     <div class="detail-actions" style="margin-top:20px;display:flex;gap:10px">

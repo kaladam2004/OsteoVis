@@ -3,6 +3,7 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { getDracoLoader } from './draco_setup.js';
 import { state } from './state.js';
 import { scene } from './scene.js';
 import { CARDIO_DB } from './cardio_data.js';
@@ -69,8 +70,9 @@ export function tryLoadCardioModel() {
   if (ms) ms.style.display = 'none';
 
   const loader = new GLTFLoader();
+  loader.setDRACOLoader(getDracoLoader());
   loader.load(
-    '/models/human-cardiovascular-system.glb',
+    '/models/cardiovascular.glb',
     (gltf) => {
       state.cardioModelLoaded = true;
       state.cardioModelLoading = false;
@@ -96,6 +98,16 @@ export function tryLoadCardioModel() {
 
       cardioGroup.add(gltf.scene);
       state.cardioGroup = cardioGroup;
+
+      const box = new THREE.Box3().setFromObject(cardioGroup);
+      const size = box.getSize(new THREE.Vector3());
+      if (size.y > 0) {
+        cardioGroup.scale.setScalar(1.8 / size.y);
+        cardioGroup.updateMatrixWorld(true);
+      }
+      const newBox = new THREE.Box3().setFromObject(cardioGroup);
+      cardioGroup.position.y += -newBox.min.y - 0.9;
+      cardioGroup.updateMatrixWorld(true);
 
       scene.add(cardioGroup);
       cardioGroup.visible = state.cardioVisible;

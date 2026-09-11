@@ -55,8 +55,8 @@
     <div class="panel-header" style="display:none" id="mobile-header-left">
       Navigation <button class="close-panel-btn" onclick="toggleSidebar('left')" aria-label="Close navigation">✕</button>
     </div>
-    <!-- System switcher -->
-    <div id="system-switcher" role="tablist" aria-label="Anatomy system">
+    <!-- System switcher (Hidden by user request) -->
+    <div id="system-switcher" role="tablist" aria-label="Anatomy system" style="display: none;">
       <button class="sys-switch-btn active" id="sw-bones"   onclick="switchPanel('bones')"   aria-label="Skeleton panel" aria-selected="true"  data-i18n="tab_skeleton">🦴 Skeleton</button>
       <button class="sys-switch-btn"        id="sw-muscles" onclick="switchPanel('muscles')" aria-label="Muscles panel" aria-selected="false" data-i18n="tab_muscles">💪 Muscles</button>
       <button class="sys-switch-btn"        id="sw-nerves"  onclick="switchPanel('nerves')"  aria-label="Nerves panel"  aria-selected="false" data-i18n="tab_nerves">🧠 Nerves</button>
@@ -338,9 +338,9 @@
   </div>
 
   <!-- RIGHT PANEL -->
-  <div id="panel-right" role="complementary" aria-label="Bone details" data-i18n="panel_bone_details">
+  <div id="panel-right" role="complementary" aria-label="Bone details">
     <div class="panel-header">
-      Bone Details
+      <span data-i18n="panel_bone_details">Bone Details</span>
       <button class="close-panel-btn" onclick="toggleSidebar('right')" aria-label="Close bone details">✕</button>
     </div>
 
@@ -445,6 +445,15 @@
       </div>
       <div id="annotation-list" style="padding:12px;overflow-y:auto;flex:1"></div>
     </div>
+
+    <!-- AI Chat Interface -->
+    <div id="ai-chat-panel">
+      <div id="ai-chat-messages"></div>
+      <div class="ai-chat-input-area">
+        <input type="text" id="ai-chat-input" placeholder="Номи узвро нависед..." autocomplete="off" />
+        <button id="ai-chat-send" aria-label="Send">➔</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -463,12 +472,7 @@
 
 <!-- Presentation Mode Overlay (fixed, full screen) -->
 <div id="presentation-overlay" role="region" aria-label="Presentation mode" style="display:none">
-  <button id="pres-exit-btn" onclick="togglePresentation()" aria-label="Exit presentation mode" data-i18n="pres_exit">✕ Exit Presentation</button>
-  <div id="pres-bone-info">
-    <div id="pres-name">OsteoVis</div>
-    <div id="pres-latin" data-i18n="pres_hint">Click any bone to begin</div>
-    <div id="pres-desc"></div>
-  </div>
+  <button id="pres-exit-btn" onclick="togglePresentation()" aria-label="Exit presentation mode">✕</button>
 </div>
 
 <!-- Mobile bottom navigation -->
@@ -478,6 +482,7 @@
   <button class="mobile-nav-btn"        id="mnav-learn"   onclick="setMode('learn')"   aria-label="Systems mode" data-i18n="mode_learn"><span class="nav-icon" aria-hidden="true">🫀</span>Systems</button>
   <button class="mobile-nav-btn"        id="mnav-quiz"    onclick="setMode('quiz')"    aria-label="Quiz mode" data-i18n="mode_quiz"><span class="nav-icon" aria-hidden="true">🧠</span>Quiz</button>
 </div>
+
 
 <script type="module" src="/src/js/main.js"></script>
 </body>

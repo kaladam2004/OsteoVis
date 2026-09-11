@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { getDracoLoader } from './draco_setup.js';
 import { scene } from './scene.js';
 import { state } from './state.js';
 import { MUSCLE_DB } from './muscles_data.js';
 import { clipConfig } from './crosssection.js';
 
-const MUSCLE_GLB_PATH = '/models/human-muscles.glb';
+const MUSCLE_GLB_PATH = '/models/muscular.glb';
 
 function createMuscleMat() {
   return new THREE.MeshPhysicalMaterial({
@@ -39,6 +40,7 @@ function mapMuscleName(meshName) {
 export async function tryLoadMuscleModel() {
   // muscleModelLoading is already set true by main.js before calling this.
   const loader = new GLTFLoader();
+  loader.setDRACOLoader(getDracoLoader());
 
   // Step 1: pre-check the file is reachable via fetch (gives clear HTTP errors)
   let arrayBuffer;

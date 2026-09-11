@@ -35,3 +35,8 @@ dist-ssr/
 .eslintcache
 .npm
 .yarn
+test_*.js
+process_video.sh
+segment_skeleton.js
+split_glb.js
+*.mp4

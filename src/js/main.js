@@ -2,7 +2,7 @@
 import '../css/style.css';
 import * as THREE from 'three';
 import TWEEN from '@tweenjs/tween.js';
-import { scene, camera, renderer, composer, canvas, ssaoPass, bloomPass } from './scene.js';
+import { scene, camera, renderer, composer, canvas, ssaoPass } from './scene.js';
 import { CameraController } from './controls.js';
 import { loadSkeletonModel } from './builder.js';
 import { state } from './state.js';
@@ -19,10 +19,14 @@ import { tryLoadCardioModel } from './cardio_loader.js';
 import { t, tObj } from './i18n.js';
 import { NERVE_DB } from './nerve_data.js';
 import { CARDIO_DB } from './cardio_data.js';
+import { initAnnotations, restoreAnnotations, updateAnnotationLabels } from './annotations.js';
+import { initAIChat } from './ai_chat.js';
 
 const controls = new CameraController(camera, canvas);
 window.appControls = controls;
 export { controls };
+
+initAIChat();
 
 // Expose all UI functions + extra helpers to window for HTML onclick handlers
 Object.assign(window, UI);
@@ -251,7 +255,7 @@ function checkFPS(time) {
   fpsFrames = 0; fpsLast = time;
   if (!performanceCapped && window.innerWidth <= 1024 && fps < 30) {
     ssaoPass.enabled  = false;
-    bloomPass.enabled = false;
+    
     performanceCapped = true;
     console.log(`OsteoVis: Performance mode — SSAO/Bloom disabled (${fps.toFixed(1)} fps)`);
   }
@@ -267,8 +271,10 @@ function applyStartupState() {
   const prefs  = loadPrefs();
 
   // Restore quiz score display
-  document.getElementById('quiz-score').textContent = prefs.quizScore || 0;
-  document.getElementById('quiz-total').textContent = prefs.quizTotal || 0;
+  const qs = document.getElementById('quiz-score');
+  const qt = document.getElementById('quiz-total');
+  if (qs) qs.textContent = prefs.quizScore || 0;
+  if (qt) qt.textContent = prefs.quizTotal || 0;
 
   const mode = params.mode || prefs.mode || 'normal';
   if (mode !== 'normal') UI.setMode(mode);
@@ -280,7 +286,7 @@ function applyStartupState() {
   }
 
   const view = params.view || prefs.view || null;
-  if (view && view !== 'front') UI.setCameraView(view);
+  if (view && view !== 'front') UI.setCameraView(view, true);
 
   const boneId = params.bone || prefs.bone || null;
   if (boneId && state.boneMeshes[boneId]) {
@@ -321,7 +327,8 @@ function animate(time) {
     for (let id in state.labels) state.labels[id].style.display = 'none';
   }
 
-  composer.render();
+  // composer.render();
+  renderer.render(scene, camera);
 }
 
 // ─── Initialize ───────────────────────────────────────────────────────────────

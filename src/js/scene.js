@@ -16,8 +16,17 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
 renderer.localClippingEnabled = true;
-
 export const scene = new THREE.Scene();
+// Use null background to let the CSS radial gradient show through
+scene.background = null;
+scene.fog = null; // Removed fog so the models don't fade into darkness
+
+// Add a subtle 3D floor grid to create spatial awareness
+const gridHelper = new THREE.GridHelper(10, 40, 0x1d4ed8, 0x1e293b);
+gridHelper.position.y = -0.92; // Pushed down slightly so it doesn't clip feet
+gridHelper.material.opacity = 0.4;
+gridHelper.material.transparent = true;
+scene.add(gridHelper);
 
 const pmremGenerator = new THREE.PMREMGenerator(renderer);
 pmremGenerator.compileEquirectangularShader();
@@ -52,12 +61,10 @@ export const ssaoPass = new SSAOPass(scene, camera, canvas.clientWidth, canvas.c
 ssaoPass.kernelRadius = 16;
 ssaoPass.minDistance = 0.005;
 ssaoPass.maxDistance = 0.1;
-export const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.0, 0.5, 0.85);
-bloomPass.threshold = 0.5;
 export const composer = new EffectComposer(renderer);
 composer.addPass(renderScene);
 composer.addPass(ssaoPass);
-composer.addPass(bloomPass);
+// Bloom pass removed to prevent glowing artifacts
 
 window.addEventListener('resize', () => {
   const w = document.getElementById('canvas-wrap').clientWidth;

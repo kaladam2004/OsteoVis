@@ -3,6 +3,7 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { getDracoLoader } from './draco_setup.js';
 import { state } from './state.js';
 import { scene } from './scene.js';
 import { NERVE_DB } from './nerve_data.js';
@@ -63,8 +64,9 @@ export function tryLoadNerveModel() {
   if (ms) ms.style.display = 'none';
 
   const loader = new GLTFLoader();
+  loader.setDRACOLoader(getDracoLoader());
   loader.load(
-    '/models/human-nervous-system.glb',
+    '/models/nervous.glb',
     (gltf) => {
       state.nerveModelLoaded = true;
       state.nerveModelLoading = false;
@@ -90,6 +92,16 @@ export function tryLoadNerveModel() {
 
       nerveGroup.add(gltf.scene);
       state.nerveGroup = nerveGroup;
+
+      const box = new THREE.Box3().setFromObject(nerveGroup);
+      const size = box.getSize(new THREE.Vector3());
+      if (size.y > 0) {
+        nerveGroup.scale.setScalar(1.8 / size.y);
+        nerveGroup.updateMatrixWorld(true);
+      }
+      const newBox = new THREE.Box3().setFromObject(nerveGroup);
+      nerveGroup.position.y += -newBox.min.y - 0.9;
+      nerveGroup.updateMatrixWorld(true);
 
       scene.add(nerveGroup);
       nerveGroup.visible = state.nerveVisible;
