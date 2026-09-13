@@ -19,14 +19,20 @@ import { CARDIO_DB, CARDIO_CATEGORIES } from './cardio_data.js';
 // ─── Sidebar helpers ──────────────────────────────────────────────────────────
 
 export function toggleSidebar(side) {
-  const el = document.getElementById(`sidebar-${side}`);
+  const id = side === 'right' ? 'panel-right' : `sidebar-${side}`;
+  const el = document.getElementById(id);
+  if (!el) return;
   el.classList.toggle('open');
-  document.getElementById('overlay').style.display = el.classList.contains('open') ? 'block' : 'none';
+  const overlay = document.getElementById('overlay');
+  if (overlay) overlay.style.display = el.classList.contains('open') ? 'block' : 'none';
 }
 export function closeAllSidebars() {
-  document.getElementById('sidebar-left').classList.remove('open');
-  document.getElementById('panel-right').classList.remove('open');
-  document.getElementById('overlay').style.display = 'none';
+  const left = document.getElementById('sidebar-left');
+  const right = document.getElementById('panel-right');
+  const overlay = document.getElementById('overlay');
+  if (left) left.classList.remove('open');
+  if (right) right.classList.remove('open');
+  if (overlay) overlay.style.display = 'none';
 }
 
 // ─── Mode switching ───────────────────────────────────────────────────────────

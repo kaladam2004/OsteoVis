@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OsteoVis - Платформаи Тиббии 3D</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Premium Medical Theme */
+            --bg-main: #f8fbff;
+            --bg-gradient: radial-gradient(circle at top right, #eef5ff 0%, #f8fbff 100%);
+            --text-main: #1e293b; /* Slate 800 */
+            --text-muted: #64748b; /* Slate 500 */
+            --accent-blue: #2563eb; /* Blue 600 */
+            --accent-cyan: #06b6d4; /* Cyan 500 */
+            --accent-navy: #0f172a; /* Slate 900 */
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(37, 99, 235, 0.15);
+            --glass-shadow: 0 10px 40px rgba(15, 23, 42, 0.06);
+            --transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-main);
+            background-image: var(--bg-gradient);
+            color: var(--text-main);
+            overflow: hidden;
+            font-size: 16px;
+        }
+
+        /* Presentation Container */
+        #presentation-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 2000px;
+        }
+
+        /* Slides */
+        .slide {
+            position: absolute;
+            width: 92%;
+            max-width: 1440px;
+            height: 85%;
+            max-height: 850px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(50px) scale(0.98);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            border-radius: 24px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            padding: 60px;
+            z-index: 1;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            z-index: 10;
+        }
+
+        .slide.prev {
+            transform: translateY(-50px) scale(0.98);
+        }
+
+        /* Typography */
+        h1 {
+            font-size: clamp(3rem, 5vw, 4.5rem);
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--accent-navy);
+            line-height: 1.15;
+            letter-spacing: -1px;
+        }
+
+        h2 {
+            font-size: clamp(2.2rem, 3.5vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--accent-blue);
+            border-bottom: 2px solid rgba(37, 99, 235, 0.1);
+            padding-bottom: 15px;
+            letter-spacing: -0.5px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-main);
+        }
+
+        p {
+            font-size: 1.15rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style: none;
+            margin-left: 0;
+            margin-bottom: 20px;
+        }
+
+        li {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            padding-left: 30px;
+            position: relative;
+            color: var(--text-muted);
+        }
+
+        li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--accent-cyan);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* Layout */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            height: 100%;
+            align-items: center;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .flex-center {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            margin-right: 10px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.blue {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--accent-blue);
+            border-color: rgba(37, 99, 235, 0.2);
+        }
+
+        /* Images & Visuals */
+        .visual-card {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+            height: 100%;
+            min-height: 350px;
+            position: relative;
+        }
+
+        .visual-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            background: #f1f5f9;
+        }
+
+        .visual-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .visual-title {
+            font-weight: 600;
+            color: var(--accent-navy);
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .visual-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Controls */
+        #controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 30px;
+            border-radius: 40px;
+            border: 1px solid rgba(0,0,0,0.05);
+            backdrop-filter: blur(15px);
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .control-btn {
+            background: transparent;
+            border: none;
+            color: var(--accent-navy);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .control-btn:hover {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        #progress-bar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+            transition: width 0.4s ease;
+        }
+
+        #slide-counter {
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--accent-navy);
+            letter-spacing: 1px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* Speaker Notes */
+        #speaker-notes-toggle {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.1);
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            z-index: 100;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: 0.3s;
+        }
+
+        #speaker-notes-toggle:hover {
+            color: var(--accent-blue);
+            border-color: rgba(37, 99, 235, 0.3);
+        }
+
+        #speaker-notes-panel {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 450px;
+            max-width: 90vw;
+            height: 350px;
+            background: #ffffff;
+            border-top-left-radius: 24px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            border-left: 1px solid rgba(0,0,0,0.1);
+            padding: 30px;
+            box-shadow: -10px -10px 40px rgba(0,0,0,0.05);
+            transform: translateY(100%);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 200;
+            overflow-y: auto;
+        }
+
+        #speaker-notes-panel.open {
+            transform: translateY(0);
+        }
+
+        #speaker-notes-panel h4 {
+            color: var(--accent-blue);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #speaker-notes-content {
+            font-size: 1rem;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* Custom Cards */
+        .info-card {
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            text-align: left;
+        }
+
+        .info-card h4 {
+            color: var(--accent-blue);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Stats */
+        .stat-box {
+            text-align: center;
+            padding: 20px;
+            background: rgba(37, 99, 235, 0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(37, 99, 235, 0.1);
+        }
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .slide { width: 95%; padding: 40px; }
+            .grid-2 { grid-template-columns: 1fr; gap: 30px; }
+            .grid-3 { grid-template-columns: 1fr 1fr; }
+            .visual-card { min-height: 250px; }
+        }
+
+        @media (max-width: 768px) {
+            .slide { height: 90%; padding: 25px; }
+            .grid-3 { grid-template-columns: 1fr; }
+            #controls { width: 92%; justify-content: space-between; padding: 10px; }
+            #speaker-notes-toggle { display: none; }
+            h1 { font-size: 2.2rem; }
+            h2 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+    </div>
+
+    <button id="speaker-notes-toggle">Ёддоштҳо (N)</button>
+    <div id="speaker-notes-panel">
+        <h4>🗣 Ёддоштҳои Баромадкунанда</h4>
+        <div id="speaker-notes-content">Матни кӯмакӣ дар ин ҷо пайдо мешавад.</div>
+    </div>
+
+    <div id="presentation-container">
+
+        <!-- 1. Муқова -->
+        <section class="slide active" id="slide-1" data-notes="Салом ба ҳама. Имрӯз мо ба шумо лоиҳаи OsteoVis-ро муаррифӣ мекунем. Ин на танҳо як барномаи оддӣ, балки платформаи мукаммали тиббӣ барои омӯзиши анатомияи инсон дар фазои 3D мебошад.">
+            <div class="flex-center">
+                <span class="badge blue">Платформаи Тиббӣ-Таълимӣ</span>
+                <h1>OsteoVis</h1>
+                <h3 style="color: var(--accent-muted); font-size: 1.8rem; font-weight: 400; margin-bottom: 30px;">Атласи 3D Анатомияи Инсон</h3>
+                <p style="max-width: 650px; margin: 0 auto; font-size: 1.2rem;">Воситаи интерактивии баландсифат барои донишҷӯёни тиб, устодон ва донишгоҳҳо. Омӯзиши дақиқи анатомӣ дар ҳама гуна дастгоҳ.</p>
+                <div style="margin-top: 40px;">
+                    <img src="https://media.licdn.com/dms/image/v2/C5612AQEzw6-3GuZwcg/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1520182199407?e=2147483647&v=beta&t=FUGtdAc7hCFf1oiziV5oinY9wXqVrsfzHTwMFAo4d9o" alt="Medical Tech" style="height: 300px; border-radius: 20px; object-fit: cover; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Мушкилоти омӯзиши анатомия -->
+        <section class="slide" id="slide-2" data-notes="Дар мактабҳои тиббӣ донишҷӯён аксар вақт бо мушкилоти норасоии маводҳои аёнии муосир дучор мешаванд. Китобҳои 2D имкон намедиҳанд сохтори фазоиро фаҳмем ва моделҳои пластикӣ зуд мешикананд ва қимат ҳастанд.">
+            <h2>Мушкилоти Таълими Анъанавӣ</h2>
+            <div class="grid-2">
+                <div>
+                    <p>Омӯзиши анатомияи мураккаби инсон бо усулҳои кӯҳна маҳдудиятҳои зиёд дорад:</p>
+                    <ul>
+                        <li><strong>Атласҳои 2D:</strong> Набудани умқ ва фаҳмиши фазоии ҷойгиршавии узвҳо.</li>
+                        <li><strong>Кадаверҳо ва Моделҳо:</strong> Маҳдуд ба лаборатория, арзиши баланд ва нигоҳдории душвор.</li>
+                        <li><strong>Маълумоти Пароканда:</strong> Ҷудо будани модели визуалӣ аз матнҳои клиникӣ ва лотинӣ.</li>
+                        <li><strong>Дастрасӣ:</strong> Донишҷӯ наметавонад лабораторияро ба хона барад.</li>
+                    </ul>
+                </div>
+                <div class="visual-card">
+                    <img class="visual-img" src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80" alt="Traditional learning limits">
+                    <div class="visual-caption">
+                        <div class="visual-title">Таҳсилоти Анъанавӣ</div>
+                        <div class="visual-desc">Маҳдудият дар визуализатсияи 3D барои донишҷӯён.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Ҳалли OsteoVis -->
+        <section class="slide" id="slide-3" data-notes="OsteoVis ин мушкилотро пурра ҳал мекунад. Мо лабораторияи анатомиро бевосита ба браузери донишҷӯ меорем. Он 3D-модели дақиқро бо маълумотҳои клиникӣ муттаҳид мекунад.">
+            <h2>Ҳалли Навоварона: OsteoVis</h2>
+            <div class="grid-2">
+                <div class="visual-card">
+                    <img class="visual-img" src="https://images.unsplash.com/photo-1581093450021-4a7360e9a6b5?auto=format&fit=crop&w=800&q=80" alt="Digital Health Solution">
+                    <div class="visual-caption">
+                        <div class="visual-title">Анатомия дар Браузер</div>
+                        <div class="visual-desc">Омӯзиши интерактивӣ бидуни насби барномаҳои иловагӣ.</div>
+                    </div>
+                </div>
+                <div>
+                    <span class="badge">Innovation</span>
+                    <h3>Лабораторияи Рақамӣ</h3>
+                    <p>OsteoVis платформаест, ки тавассути технологияи WebGL моделҳои тиббии 3D-ро мустақиман дар браузер намоиш медиҳад.</p>
+                    <ul>
+                        <li><strong>Дастрасии Осон:</strong> Бе ягон насб (installation) дар телефон ва компютер кор мекунад.</li>
+                        <li><strong>Интегратсияи Клиникӣ:</strong> Ҳар як устухон ё мушак дорои маълумоти муфассал (ном, вазифа, пайвандҳо) мебошад.</li>
+                        <li><strong>Воқеият (Realism):</strong> Истифодаи маводҳои муосир ва рендеринги баландсифат (SSAO, Bloom).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Ҳадаф ва Идея -->
+        <section class="slide" id="slide-4" data-notes="Идеяи асосии мо ин аст: аз як модели скелет оғоз карда, ба платформаи пурраи рақамии бадани инсон табдил ёфтан. Мо аллакай системаҳои мушакҳо ва рагҳоро ворид карда истодаем.">
+            <h2>Ҳадаф ва Идеяи Асосӣ</h2>
+            <div class="flex-center">
+                <h3 style="font-size: 2.2rem; color: var(--accent-navy); margin-bottom: 20px;">
+                    Аз Скелет ба <span style="color: var(--accent-blue);">Инсони Пурраи Рақамӣ</span>
+                </h3>
+                <p style="max-width: 800px; text-align: center;">OsteoVis танҳо барои омӯзиши устухонҳо нест. Архитектураи мо имкон медиҳад, ки системаҳои гуногуни бадан қабат ба қабат илова карда шаванд.</p>
+                
+                <div class="grid-3" style="width: 100%; margin-top: 40px;">
+                    <div class="info-card" style="text-align: center;">
+                        <span style="font-size: 2.5rem; display: block; margin-bottom: 15px;">🦴</span>
+                        <h4>Системаи Устухонҳо</h4>
+                        <span class="badge blue">Пурра Омода</span>
+                    </div>
+                    <div class="info-card" style="text-align: center;">
+                        <span style="font-size: 2.5rem; display: block; margin-bottom: 15px;">💪</span>
+                        <h4>Системаи Мушакҳо</h4>
+                        <span class="badge blue">Пурра Омода</span>
+                    </div>
+                    <div class="info-card" style="text-align: center;">
+                        <span style="font-size: 2.5rem; display: block; margin-bottom: 15px;">🧠 / 🩸</span>
+                        <h4>Асаб ва Рагҳо</h4>
+                        <span class="badge blue">Пурра Омода</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Skeletal System -->
+        <section class="slide" id="slide-5" data-notes="Системаи устухонҳо қисми асосии барнома аст. 206 устухон пурра моделсозӣ шудаанд. Алгоритмҳои мо ҳатто устухонҳои мураккабро (ки аз якчанд қисм иборатанд) ҳамчун як узви ягона идора мекунанд.">
+            <h2>Системаи Устухонҳо (Skeletal System)</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>206 Устухон бо Тафсилоти Тиббӣ</h3>
+                    <p>Пояи асосии OsteoVis - атласи мукаммали скелет мебошад.</p>
+                    <ul>
+                        <li><strong>Fragment-Aware:</strong> Устухонҳои мураккаб (мисли устухони рон бо 20 қисм) ҳамчун як объекти мукаммал идора мешаванд.</li>
+                        <li><strong>Ҷустуҷӯи Интерактивӣ:</strong> Системаи филтр барои косахонаи сар, сутунмӯҳра, дасту пойҳо.</li>
+                        <li><strong>Махзани Маълумот (Database):</strong> Номҳои лотинӣ (Terminologia Anatomica), вазифаҳо ва нуқтаҳои пайвастшавӣ.</li>
+                    </ul>
+                </div>
+                <div class="visual-card">
+                    <img class="visual-img" src="https://palscertification.com/nitropack_static/HCggEVIfRBzRlXzpCrqmuGuoThPJifKq/assets/images/optimized/rev-f30ca9e/palscertification.com/wp-content/uploads/2024/06/Downpiccc-1142580333.jpg" alt="Skeletal Anatomy">
+                    <div class="visual-caption">
+                        <div class="visual-title">Намоиши 3D Скелет</div>
+                        <div class="visual-desc">Текстураҳои воқеӣ бо истифодаи Subsurface Noise.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Muscular System -->
+        <section class="slide" id="slide-6" data-notes="Системаи мушакҳо бомуваффақият илова карда шуд. Зиёда аз 130 мушаки алоҳида ба 53 гурӯҳи клиникӣ пайваст карда шудаанд. Ҳамаи абзорҳои ченкунӣ ва буриш дар рӯи мушакҳо низ кор мекунанд.">
+            <h2>Системаи Мушакҳо (Muscular System)</h2>
+            <div class="grid-2">
+                <div class="visual-card">
+                    <!-- Using a robust wikimedia commons link for muscular anatomy representation -->
+                    <img class="visual-img" src="https://traineracademy.org/wp-content/uploads/2023/01/The-muscular-system-1024x875.jpg" style="object-fit: contain; padding: 20px;" alt="Muscular System">
+                    <div class="visual-caption">
+                        <div class="visual-title">Қабати Мушакҳо</div>
+                        <div class="visual-desc">Зиёда аз 130 мушакҳои инфиродӣ дар фазои 3D.</div>
+                    </div>
+                </div>
+                <div>
+                    <span class="badge blue">Қабати Иловагӣ</span>
+                    <h3>Интегратсияи Пурраи Мушакҳо</h3>
+                    <p>Бо истифода аз маълумоти дақиқи илмӣ, системаи мушакҳо ҳамчун қабати фаъол ба барнома илова шуд.</p>
+                    <ul>
+                        <li><strong>Аниқии Баланд:</strong> Зиёда аз 820,000 секунҷаҳо (triangles) барои намоиши дақиқи 130 мушак.</li>
+                        <li><strong>Пайваст бо Устухонҳо:</strong> Мушакҳо ба 53 гурӯҳи асосии клиникӣ тақсим шудаанд.</li>
+                        <li><strong>Мутобиқат:</strong> Функсияҳои буриш (Cross-section) ва ченкунӣ дар мушакҳо бе нуқсон кор мекунанд.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Nervous System -->
+        <section class="slide" id="slide-7" data-notes="Моделҳои 3D-и системаи асаб ва рагҳои хунгард аллакай ба лоиҳа бор карда шудаанд. Ҳоло мо дар марҳилаи пайваст кардани маълумоти клиникӣ ба ин моделҳо қарор дорем.">
+            <h2>Системаи Асаб ва Рагҳо</h2>
+            <div class="grid-2">
+                <div>
+                    <span class="badge blue">Пурра Омода</span>
+                    <h3>Тавсеаи Имкониятҳои Анатомӣ</h3>
+                    <p>Архитектураи OsteoVis шабакаҳои мураккаби инсонро бомуваффақият идора мекунад.</p>
+                    <ul>
+                        <li><strong>Моделҳои Мавҷуда:</strong> Файлҳои <code>nervous.glb</code> ва <code>cardiovascular.glb</code> пурра фаъоланд.</li>
+                        <li><strong>Системаи Қабатҳо:</strong> Тавассути <code>layers.js</code> корбар метавонад рагҳо ва асабҳоро ба таври интерактивӣ идора кунад.</li>
+                        <li><strong>Интегратсияи Пурра:</strong> Тамоми абзорҳо ва маълумотҳои клиникӣ бо ин қабатҳо пайваст мебошанд.</li>
+                    </ul>
+                </div>
+                <div class="visual-card">
+                    <img class="visual-img" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7q18ioXDTss3cDDK60-oZzXsjly2mLaiRe8mYhDU9l_bPqsF3MTlhTsQ&s=10" style="object-fit: cover;" alt="Nervous System">
+                    <div class="visual-caption">
+                        <div class="visual-title">Системаи Асаб (Nervous System)</div>
+                        <div class="visual-desc">Модели шабакавии системаи марказӣ ва периферӣ.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. Интерактивии 3D -->
+        <section class="slide" id="slide-8" data-notes="Қисми ҷолибтарин ин интерактивист. Реҷаи Explode устухонҳоро пароканда мекунад, то дохилашон дида шавад. Камераҳо хеле ҳамвор ҳаракат мекунанд.">
+            <h2>Таҷрибаи Интерактивии 3D</h2>
+            <div class="grid-2">
+                <div class="grid-2" style="gap: 20px;">
+                    <div class="info-card">
+                        <h4 style="font-size: 1rem;">💥 Explode Mode</h4>
+                        <p style="font-size: 0.85rem; margin:0;">Пароканда шудани қисмҳо аз марказ барои дидани сохтори дохилӣ.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4 style="font-size: 1rem;">🔍 Isolation (I)</h4>
+                        <p style="font-size: 0.85rem; margin:0;">Тамаркуз танҳо ба як узв; дигар қисмҳо 8% шаффоф мешаванд.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4 style="font-size: 1rem;">☢️ X-Ray Mode</h4>
+                        <p style="font-size: 0.85rem; margin:0;">Тамоми бадан рентгенӣ мешавад, ба ҷуз узви интихобшуда.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4 style="font-size: 1rem;">🎥 Camera Tweens</h4>
+                        <p style="font-size: 0.85rem; margin:0;">7 кунҷи камера бо ҳаракати ҳамвор ва автоматӣ.</p>
+                    </div>
+                </div>
+                <div>
+                    <h3>Визуализатсияи Динамикӣ</h3>
+                    <p>Барнома имкон медиҳад, ки корбар на фақат моделро тоб диҳад, балки бо он пурра ҳамъкорӣ кунад. Бо пахш кардани дилхоҳ узв, камера ба таври автоматӣ ба он наздик мешавад ва маълумотҳо пайдо мегарданд.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. Quiz ва воситаҳои омӯзиш -->
+        <section class="slide" id="slide-9" data-notes="Барои санҷиши дониш мо реҷаи Quiz дорем, ки дорои таймер аст ва дар охир баҳо медиҳад. Ин барои имтиҳонҳои фосилавӣ хеле муфид аст.">
+            <h2>Санҷиши Дониш (Quiz) ва Омӯзиш</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Системаи Интерактивӣ барои Итиҳонҳо</h3>
+                    <p>OsteoVis на танҳо атлас, балки воситаи санҷиши дониш аст:</p>
+                    <ul>
+                        <li><strong>Се Сатҳи Душворӣ:</strong> Осон, Миёна ва Мураккаб вобаста ба соли таҳсили донишҷӯ.</li>
+                        <li><strong>Таймери Рақамӣ:</strong> Санҷиш бо таймери 30-сониягӣ, ки ҳангоми кам шудани вақт рангаш тағйир меёбад.</li>
+                        <li><strong>Баҳогузории Автоматӣ:</strong> Дар охир система фоизи дурустиро ҳисоб карда, баҳои (A-F) мегузорад.</li>
+                    </ul>
+                </div>
+                <div class="visual-card">
+                    <img class="visual-img" src="https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&w=800&q=80" alt="Medical Quiz">
+                    <div class="visual-caption">
+                        <div class="visual-title">Воситаҳои Арзёбӣ</div>
+                        <div class="visual-desc">Имтиҳони визуалӣ бевосита дар рӯи модели 3D.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Measurement / Annotation -->
+        <section class="slide" id="slide-10" data-notes="Абзорҳои ченкунӣ ба донишҷӯёни ортопедия кӯмак мекунад, ки кунҷҳо ва масофаро бо сантиметр чен кунанд. Бо Annotations онҳо метавонанд сӯзанакҳо монда қайдҳои худро нависанд.">
+            <h2>Ченкунӣ ва Қайдҳо (Measurement & Annotation)</h2>
+            <div class="flex-center">
+                <p style="font-size: 1.2rem; max-width: 700px; text-align: center; margin-bottom: 40px;">
+                    Абзорҳои дақиқи клиникӣ барои таҳқиқоти амиқ ва тайёрӣ ба дарсҳо.
+                </p>
+                <div class="grid-2" style="width: 100%;">
+                    <div class="info-card">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">📏</div>
+                        <h4>Абзори Ченкунӣ</h4>
+                        <p>Интихоби 2 нуқта масофаро бо <strong>сантиметр</strong> чен мекунад.<br>Интихоби 3 нуқта кунҷро байни устухонҳо ё буғумҳо бо <strong>дараҷа</strong> ҳисоб мекунад. Raycasting дар фазои ҷаҳонӣ (world-space) бениҳоят дақиқ аст.</p>
+                    </div>
+                    <div class="info-card">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">📌</div>
+                        <h4>Сӯзанакҳо (Annotations)</h4>
+                        <p>Донишҷӯ метавонад дар дилхоҳ қисми модел сӯзанаки шахсии худро (Pin) гузорад ва ёддошт нависад. Ин қайдҳо дар <code>localStorage</code>-и браузер захира мешаванд ва баъди баромадан гум намешаванд.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 11. Cross-section -->
+        <section class="slide" id="slide-11" data-notes="Cross-section барои тайёрӣ ба томография (КТ ва МРТ) хеле муҳим аст. Мо метавонем моделро дар се ҳамворӣ бурем.">
+            <h2>Буришҳои Анатомӣ (Cross-Section)</h2>
+            <div class="grid-2">
+                <div class="visual-card">
+                    <img class="visual-img" src="https://cdn.3d4medical.com/media/blog/cross-sections/choose.gif" alt="Medical Scan">
+                    <div class="visual-caption">
+                        <div class="visual-title">Тайёрӣ ба Радиология</div>
+                        <div class="visual-desc">Фаҳмиши сохтори дохилӣ тавассути буришҳо.</div>
+                    </div>
+                </div>
+                <div>
+                    <h3>Таҳқиқи Дохилии Узвҳо</h3>
+                    <p>OsteoVis дорои асбоби пешрафтаи буриши 3D (Clipping Planes) мебошад, ки ҳам устухонҳо ва ҳам мушакҳоро бурида метавонад.</p>
+                    <ul>
+                        <li><strong>Сагитталӣ (Sagittal):</strong> Буриш аз чап ба рост.</li>
+                        <li><strong>Трансверсиалӣ (Transverse):</strong> Буриши уфуқӣ.</li>
+                        <li><strong>Короналӣ (Coronal):</strong> Буриши пеш ва қафо.</li>
+                    </ul>
+                    <p><i>Слайдерҳои зинда (live sliders) имкон медиҳанд, ки буришҳоро миллиметр ба миллиметр идора кунед.</i></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 12. Presentation Mode -->
+        <section class="slide" id="slide-12" data-notes="Presentation Mode махсус барои устодон дар вақти лексияҳо сохта шудааст. Он ҳамаи тугмаҳоро пинҳон карда, номи устухонро бо ҳарфҳои калон дар экран нишон медиҳад.">
+            <h2>Реҷаи Муаррифӣ (Presentation Mode)</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Воситаи Идеалӣ барои Устодон</h3>
+                    <p>Ин реҷа махсус барои истифода дар аудиторияҳо ва тахтаҳои электронӣ сохта шудааст.</p>
+                    <ul>
+                        <li><strong>Экрани Пурра (Fullscreen):</strong> Ҳамаи панелҳо ва тугмаҳои зиёдатӣ пинҳон мешаванд.</li>
+                        <li><strong>Таваҷҷӯҳи Максималӣ:</strong> Номи устухон ё мушак бо ҳарфҳои калон дар болои экран пайдо мешавад.</li>
+                        <li><strong>Гирифтани Акс (Capture):</strong> Имконияти гирифтани скриншотҳои баландсифат бо фони шаффоф (transparent) барои ворид кардан ба презентатсияҳои илмӣ.</li>
+                    </ul>
+                </div>
+                <div class="visual-card">
+                    <img class="visual-img" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9mfk5sQo5P2Th4Ot2N8fFO2ewvokt2XWBnbMjN9oktf2d9sXUSC5pupc&s=10" alt="Professor teaching">
+                    <div class="visual-caption">
+                        <div class="visual-title">Муҳити Лексия</div>
+                        <div class="visual-desc">Истифодаи OsteoVis дар экранҳои калон.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 13. 3-забона будани система -->
+        <section class="slide" id="slide-13" data-notes="Барнома бо 3 забон кор мекунад. Аммо новобаста аз ин, номгузориҳои лотинӣ ҳамеша дар ҷои аввал меистанд, зеро ин стандарти ҷаҳонии тиббӣ аст.">
+            <h2>Платформаи Бисёрзабона</h2>
+            <div class="flex-center">
+                <p style="font-size: 1.2rem; max-width: 700px; text-align: center; margin-bottom: 40px;">
+                    Омӯзиши тиб марз надорад. OsteoVis барои донишҷӯёни маҳаллӣ ва хориҷӣ пурра мутобиқ карда шудааст.
+                </p>
+                
+                <div style="display: flex; gap: 20px; margin-bottom: 40px;">
+                    <span class="badge" style="font-size: 1.2rem; padding: 15px 30px;">🇹🇯 Тоҷикӣ</span>
+                    <span class="badge blue" style="font-size: 1.2rem; padding: 15px 30px;">🇷🇺 Русский</span>
+                    <span class="badge" style="font-size: 1.2rem; padding: 15px 30px;">🇬🇧 English</span>
+                </div>
+                
+                <div class="info-card" style="max-width: 600px; text-align: center;">
+                    <h4 style="margin-bottom: 10px; justify-content: center;">Стандарти Ҷаҳонӣ: Лотинӣ</h4>
+                    <p style="margin: 0;">Новобаста аз забони интихобшуда, номгузориҳои <strong>Лотинии Анатомӣ (Terminologia Anatomica)</strong> ҳамеша ҳамчун асос намоиш дода мешаванд ва ҷустуҷӯ низ бо лотинӣ имконпазир аст.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 14. Технология -->
+        <section class="slide" id="slide-14" data-notes="Мо аз Three.js истифода бурдем. Барои телефонҳо мо алгоритме дорем, ки агар суръат аз 30 кадр паст шавад, эффектҳои вазнинро хомӯш мекунад.">
+            <h2>Архитектураи Техникӣ ва Оптимизатсия</h2>
+            <div class="grid-2">
+                <div class="grid-2" style="grid-template-columns: 1fr; gap: 15px;">
+                    <div class="info-card"><strong>Engine:</strong> Three.js ^0.184.0 (WebGL 2.0)</div>
+                    <div class="info-card"><strong>Build System:</strong> Vite (ES Modules)</div>
+                    <div class="info-card"><strong>Post-Processing:</strong> EffectComposer (SSAO + Bloom)</div>
+                    <div class="info-card"><strong>Animations:</strong> TWEEN.js</div>
+                </div>
+                <div>
+                    <h3>Суръат ва Эътимод</h3>
+                    <ul>
+                        <li><strong>Назорати FPS:</strong> Агар дар телефон суръат аз 30 FPS паст шавад, эффектҳои вазнин худкор хомӯш мешаванд.</li>
+                        <li><strong>Z-Fighting:</strong> Истифодаи <code>logarithmicDepthBuffer</code> барои ҷилавгирӣ аз лаппиши графика дар устухонҳои майда.</li>
+                        <li><strong>Бе Фреймворкҳои Вазнин:</strong> Набудани React ё Vue барномаро ниҳоят сабук ва зуд боршаванда кард.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 15. QA -->
+        <section class="slide" id="slide-15" data-notes="Сифат кафолат дода мешавад. Дар ҳисоботи охирини аудит, барнома бидуни ягон хатогӣ компилятсия шуд ва дар экранҳои хурди мобилӣ то 375 пиксел пурра кор мекунад.">
+            <h2>Натиҷаҳои Аудит ва QA</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Стандартҳои Баланди Таҳия (Engineering)</h3>
+                    <p>Лоиҳа аз марҳилаҳои сахти тестӣ гузаштааст (P0 то P3):</p>
+                    <ul>
+                        <li><strong>Build:</strong> 0 хатогӣ (0 errors), 34 модули оптимизатсияшуда.</li>
+                        <li><strong>Mobile UI:</strong> Мутобиқат бо экранҳои хурд то 375px; панели поёнӣ (bottom nav) ба таври худкор пайдо мешавад.</li>
+                        <li><strong>URL Sharing:</strong> Ҳолати барнома дар URL ва <code>localStorage</code> захира мешавад (барои мубодилаи суроға бо дигарон).</li>
+                    </ul>
+                </div>
+                <div class="flex-center">
+                    <div class="stat-box" style="width: 100%; max-width: 300px;">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Build Errors дар марҳилаи ниҳоӣ</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 16. Вазъи Имрӯза -->
+        <section class="slide" id="slide-16" data-notes="Пас, имрӯз мо чӣ дорем? Скелет ва мушакҳо 100% кор мекунанд. Рагҳо ва асабҳо модел доранд, аммо маълумоташон ҳанӯз пайваст нест. Ин вазъи воқеии мост.">
+            <h2>Вазъи Имрӯзаи Лоиҳа (Current Status)</h2>
+            <div class="grid-3" style="margin-top: 30px;">
+                <div class="info-card" style="border-top: 4px solid #10b981;">
+                    <h4 style="color: #10b981;">✅ Пурра Фаъол</h4>
+                    <ul style="font-size: 0.95rem; margin-top: 15px;">
+                        <li>Муҳаррики 3D ва UI</li>
+                        <li>Махзани 206 устухон ва 130 мушак</li>
+                        <li>Системаи Асаб ва Рагҳои Хунгард</li>
+                        <li>Абзорҳо: Буриш, Ченкунӣ, Қайдҳо, Quiz</li>
+                    </ul>
+                </div>
+                <div class="info-card" style="border-top: 4px solid #f59e0b;">
+                    <h4 style="color: #f59e0b;">⚠️ Дар ҳоли санҷиш</h4>
+                    <ul style="font-size: 0.95rem; margin-top: 15px;">
+                        <li>Воридкунии патологияҳо ва бемориҳои мураккаб</li>
+                        <li>Баъзе моделҳои хурди рагҳои периферӣ</li>
+                    </ul>
+                </div>
+                <div class="info-card" style="border-top: 4px solid #64748b;">
+                    <h4 style="color: #64748b;">⏳ Дар Нақша</h4>
+                    <ul style="font-size: 0.95rem; margin-top: 15px;">
+                        <li>Узвҳои дохилӣ</li>
+                        <li>Пайвандҳо (Ligaments)</li>
+                        <li>Синхронизатсияи зинда барои муаллим ва шогир</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 17. Roadmap -->
+        <section class="slide" id="slide-17" data-notes="Нақшаи мо барои оянда: хатми пайвасти системаи асаб ва хун, баъдан иловаи бемориҳо (масалан нишон додани шикасти устухон) ва дар охир ворид кардани Зеҳни Сунъӣ.">
+            <h2>Харитаи Роҳ (Future Roadmap)</h2>
+            <div class="grid-2">
+                <div style="position: relative; padding-left: 30px;">
+                    <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: rgba(0,0,0,0.1);"></div>
+                    
+                    <div style="position: relative; margin-bottom: 25px;">
+                        <div style="position: absolute; left: -36px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: #10b981;"></div>
+                        <h4 style="color: var(--accent-navy);">Марҳилаи 1: Асос (Иҷро шуд)</h4>
+                        <p style="font-size: 0.9rem; margin-bottom:0;">Скелет, Мушакҳо, UI ва Абзорҳои таълимӣ.</p>
+                    </div>
+                    <div style="position: relative; margin-bottom: 25px;">
+                        <div style="position: absolute; left: -36px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: #10b981;"></div>
+                        <h4 style="color: var(--accent-navy);">Марҳилаи 2: Шабакаҳо (Иҷро шуд)</h4>
+                        <p style="font-size: 0.9rem; margin-bottom:0;">Интегратсияи пурраи асабҳо ва рагҳои хунгард.</p>
+                    </div>
+                    <div style="position: relative; margin-bottom: 25px;">
+                        <div style="position: absolute; left: -36px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid rgba(0,0,0,0.2);"></div>
+                        <h4 style="color: var(--text-muted);">Марҳилаи 3: Патология</h4>
+                        <p style="font-size: 0.9rem; margin-bottom:0;">Моделсозии бемориҳо, шикастапораҳо ва омосҳо.</p>
+                    </div>
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -36px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid rgba(0,0,0,0.2);"></div>
+                        <h4 style="color: var(--text-muted);">Марҳилаи 4: Зеҳни Сунъӣ</h4>
+                        <p style="font-size: 0.9rem; margin-bottom:0;">Муаллими виртуалии AI барои тавлиди саволҳои клиникӣ.</p>
+                    </div>
+                </div>
+                <div class="visual-card">
+                    <img class="visual-img" src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80" alt="AI in Healthcare">
+                    <div class="visual-caption">
+                        <div class="visual-title">Ояндаи AI</div>
+                        <div class="visual-desc">Зеҳни сунъӣ дар хидмати таълими тиб.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 18. Истифода дар донишгоҳҳо -->
+        <section class="slide" id="slide-18" data-notes="Мо мехоҳем барномаи худро дар донишкадаҳои тиббӣ ҷорӣ кунем. Ин ба онҳо кӯмак мекунад, ки маблағро барои харидани барномаҳои хориҷии қиматбаҳо сарфа кунанд ва сифати дарсро баланд бардоранд.">
+            <h2>Истифода дар Донишгоҳҳои Тиббӣ</h2>
+            <div class="grid-2">
+                <div class="visual-card">
+                    <img class="visual-img" src="https://ysm-res.cloudinary.com/image/upload/c_limit,f_jpg,h_630,q_auto,w_1200/v1/yms/prod/f413bcd1-d8a6-4ed7-b747-9600d32d1b5d" alt="Students studying medicine">
+                    <div class="visual-caption">
+                        <div class="visual-title">Аудиторияи Тиббӣ</div>
+                        <div class="visual-desc">Омӯзиши интерактивӣ байни устод ва шогирд.</div>
+                    </div>
+                </div>
+                <div>
+                    <h3>Татбиқи Амалӣ дар Муассисаҳо</h3>
+                    <p>OsteoVis алтернативаи муосир ва камхарҷ барои таълими тиббӣ мебошад:</p>
+                    <ul>
+                        <li><strong>Ҷойивазкунии Нармафзорҳои Қиматбаҳо:</strong> Хароҷоти донишгоҳро барои иҷозатномаҳои хориҷӣ (лизингҳо) коҳиш медиҳад.</li>
+                        <li><strong>Таҳсилоти Фосилавӣ:</strong> Донишҷӯён метавонанд анатомияро дар хона, аз тариқи браузер омӯзанд.</li>
+                        <li><strong>Лабораторияҳои Интерактивӣ:</strong> Насби барнома дар экранҳои калони сенсорӣ (Touch-kiosks) дар дохили синфхонаҳо.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 19. Vision (Рақибон) -->
+        <section class="slide" id="slide-19" data-notes="Мо даъво надорем, ки ҳоло аз Complete Anatomy ё BioDigital беҳтарем. Онҳо миллиардҳо доллар арзиш доранд. Аммо бартарии мо ин мутобиқсозии маҳаллӣ, осонии истифода ва бисёрзабонӣ мебошад.">
+            <h2>Рақобат ва Бартарии Мо</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Мавқеи Мо дар Бозор</h3>
+                    <p>Гарчанде ки платформаҳои бузурги тиҷоратӣ ба мисли <i>BioDigital Human</i> ва <i>Complete Anatomy</i> вуҷуд доранд, OsteoVis бартариҳои беназири худро дорад:</p>
+                    <div class="info-card" style="margin-top: 20px;">
+                        <h4 style="margin-bottom: 10px;">Бартариҳои Асосӣ:</h4>
+                        <ul style="margin-bottom: 0;">
+                            <li>Набудани зеркашӣ (App Store) - дастрасии фаврӣ тавассути Web.</li>
+                            <li>Архитектураи боз барои ҳамгироӣ бо донишгоҳҳои маҳаллӣ.</li>
+                            <li>Асоси бисёрзабона (Тоҷикӣ, Русӣ, Англисӣ) бо лотинӣ.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="flex-center">
+                    <p style="font-style: italic; color: var(--text-muted); font-size: 1rem; max-width: 400px; text-align: left;">
+                        *Қайд: Мо ҳанӯз даъвои баробарӣ бо экосистемаҳои миллиарддоллараро надорем. Аммо асоси мо барои эҳтиёҷоти донишгоҳҳои минтақавӣ комилан устувор ва мутобиқ аст.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 20. Final conclusion -->
+        <section class="slide" id="slide-20" data-notes="Дар хулоса: OsteoVis ин танҳо як барнома барои дидани скелет нест. Ин таҳкурсии як мактаби рақамии анатомия аст. Ташаккур ба диққататон!">
+            <div class="flex-center">
+                <h2 style="border: none; font-size: clamp(2rem, 3.5vw, 3rem); margin-bottom: 20px; color: var(--accent-navy);">
+                    OsteoVis <span style="color: var(--accent-blue);">танҳо модели скелет</span> нест.
+                </h2>
+                <h3 style="font-size: 1.5rem; color: var(--text-muted); max-width: 800px; line-height: 1.6; margin-bottom: 40px; font-weight: 400;">
+                    Ин таҳкурсии платформаи мукаммали рақамӣ барои омӯзиши анатомияи инсон мебошад.
+                </h3>
+                
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 900px;">
+                    <span class="badge blue">Скелет (Фаъол)</span>
+                    <span class="badge blue">Мушакҳо (Фаъол)</span>
+                    <span class="badge blue">Асаб (Фаъол)</span>
+                    <span class="badge blue">Рагҳо (Фаъол)</span>
+                    <span class="badge" style="background: #f1f5f9; color: #94a3b8; border-color: transparent;">Нафаскашӣ (Оянда)</span>
+                    <span class="badge" style="background: #f1f5f9; color: #94a3b8; border-color: transparent;">Ҳазмкунӣ (Оянда)</span>
+                    <span class="badge" style="background: #f1f5f9; color: #94a3b8; border-color: transparent;">Зеҳни Сунъӣ (Оянда)</span>
+                    <span class="badge" style="background: #f1f5f9; color: #94a3b8; border-color: transparent;">Лабораторияи VR (Оянда)</span>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Controls -->
+    <div id="controls">
+        <button class="control-btn" id="btn-first" title="Слайди Якум (Home)">⏮</button>
+        <button class="control-btn" id="btn-prev" title="Қафо (Arrow Left)">◀</button>
+        <span id="slide-counter">1 / 20</span>
+        <button class="control-btn" id="btn-next" title="Ба пеш (Arrow Right / Space)">▶</button>
+        <button class="control-btn" id="btn-last" title="Слайди Охирин (End)">⏭</button>
+        <div style="width: 1px; height: 24px; background: rgba(0,0,0,0.1); margin: 0 10px;"></div>
+        <button class="control-btn" id="btn-fs" title="Экрани пурра (F)">⛶</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const totalSlides = slides.length;
+            let currentSlide = 0;
+
+            const btnNext = document.getElementById('btn-next');
+            const btnPrev = document.getElementById('btn-prev');
+            const btnFirst = document.getElementById('btn-first');
+            const btnLast = document.getElementById('btn-last');
+            const btnFs = document.getElementById('btn-fs');
+            const counter = document.getElementById('slide-counter');
+            const progressBar = document.getElementById('progress-bar');
+            
+            const notesToggle = document.getElementById('speaker-notes-toggle');
+            const notesPanel = document.getElementById('speaker-notes-panel');
+            const notesContent = document.getElementById('speaker-notes-content');
+
+            // Initialize
+            updatePresentation();
+
+            function updatePresentation() {
+                // Update Classes
+                slides.forEach((slide, index) => {
+                    slide.classList.remove('active', 'prev');
+                    if (index === currentSlide) {
+                        slide.classList.add('active');
+                        // Update Notes
+                        const note = slide.getAttribute('data-notes') || 'Ёддошт вуҷуд надорад.';
+                        notesContent.textContent = note;
+                    } else if (index < currentSlide) {
+                        slide.classList.add('prev');
+                    }
+                });
+
+                // Update UI
+                counter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+                const progress = ((currentSlide) / (totalSlides - 1)) * 100;
+                progressBar.style.width = `${progress}%`;
+
+                // Update Button States
+                btnPrev.disabled = currentSlide === 0;
+                btnFirst.disabled = currentSlide === 0;
+                btnNext.disabled = currentSlide === totalSlides - 1;
+                btnLast.disabled = currentSlide === totalSlides - 1;
+            }
+
+            function nextSlide() {
+                if (currentSlide < totalSlides - 1) {
+                    currentSlide++;
+                    updatePresentation();
+                }
+            }
+
+            function prevSlide() {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    updatePresentation();
+                }
+            }
+
+            function goToFirst() {
+                currentSlide = 0;
+                updatePresentation();
+            }
+
+            function goToLast() {
+                currentSlide = totalSlides - 1;
+                updatePresentation();
+            }
+
+            function toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.error(`Хатогӣ дар кушодани экрани пурра: ${err.message}`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+
+            function toggleNotes() {
+                notesPanel.classList.toggle('open');
+            }
+
+            // Event Listeners for Buttons
+            btnNext.addEventListener('click', nextSlide);
+            btnPrev.addEventListener('click', prevSlide);
+            btnFirst.addEventListener('click', goToFirst);
+            btnLast.addEventListener('click', goToLast);
+            btnFs.addEventListener('click', toggleFullscreen);
+            notesToggle.addEventListener('click', toggleNotes);
+
+            // Keyboard Navigation
+            document.addEventListener('keydown', (e) => {
+                switch(e.key) {
+                    case 'ArrowRight':
+                    case ' ':
+                        e.preventDefault();
+                        nextSlide();
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        prevSlide();
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        goToFirst();
+                        break;
+                    case 'End':
+                        e.preventDefault();
+                        goToLast();
+                        break;
+                    case 'f':
+                    case 'F':
+                        e.preventDefault();
+                        toggleFullscreen();
+                        break;
+                    case 'n':
+                    case 'N':
+                        e.preventDefault();
+                        toggleNotes();
+                        break;
+                }
+            });
+
+            // Touch / Swipe Support for Mobile
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            document.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, {passive: true});
+
+            document.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, {passive: true});
+
+            function handleSwipe() {
+                const swipeThreshold = 50;
+                if (touchEndX < touchStartX - swipeThreshold) {
+                    nextSlide(); // Swiped left
+                }
+                if (touchEndX > touchStartX + swipeThreshold) {
+                    prevSlide(); // Swiped right
+                }
+            }
+        });
+    </script>
+</body>
+</html>
